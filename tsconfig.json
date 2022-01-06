@@ -20,7 +20,9 @@
         "noFallthroughCasesInSwitch": false,
         "paths": {
             "@root/*": ["./src/*"],
-            "@board/*": ["./src/board/*"]
+            "@board/*": ["./src/board/*"],
+            "@monitor/*": ["./src/monitor/*"],
+            "@utils/*": ["./src/utils/*"]
         }
     }
 }

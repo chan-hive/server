@@ -9,5 +9,6 @@ import { Board } from "@board/models/board.model";
 @Module({
     imports: [TypeOrmModule.forFeature([Board])],
     providers: [BoardService, BoardResolver],
+    exports: [BoardService],
 })
 export class BoardModule {}

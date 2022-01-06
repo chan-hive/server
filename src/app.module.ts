@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-
-import { BoardModule } from "@root/board/board.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { GraphQLModule } from "@nestjs/graphql";
+
+import { BoardModule } from "@board/board.module";
+import { MonitorModule } from "@monitor/monitor.module";
 
 import * as config from "@root/ormconfig";
-import { GraphQLModule } from "@nestjs/graphql";
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import { GraphQLModule } from "@nestjs/graphql";
             autoSchemaFile: true,
         }),
         BoardModule,
+        MonitorModule,
     ],
 })
 export class AppModule {}
