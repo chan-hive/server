@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryColumn, RelationId } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryColumn, RelationId } from "typeorm";
 
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 
@@ -10,6 +10,10 @@ export class Thread {
     @Field(() => Int)
     @PrimaryColumn({ type: "int" })
     public id!: number;
+
+    @Field(() => Boolean)
+    @Column({ type: "bool" })
+    public isDead!: boolean;
 
     //
     // Relation (Many-to-One) - Board => Thread

@@ -147,4 +147,65 @@ export namespace API {
             ZE?: string;
         }
     }
+
+    export namespace Catalog {
+        export type Result = Page[];
+
+        export interface Page {
+            page: number;
+            threads: Thread[];
+        }
+
+        export interface Thread {
+            no: number;
+            sticky?: number;
+            closed?: number;
+            now: string;
+            name: string;
+            sub?: string;
+            com?: string;
+            time: number;
+            resto: number;
+            capcode?: string;
+            semantic_url: string;
+            replies: number;
+            images: number;
+            omitted_posts?: number;
+            omitted_images?: number;
+            last_replies: LastReply[];
+            last_modified: number;
+            filename?: string;
+            ext?: string;
+            w?: number;
+            h?: number;
+            tn_w?: number;
+            tn_h?: number;
+            tim?: number;
+            md5?: string;
+            fsize?: number;
+            bumplimit?: number;
+            imagelimit?: number;
+            trip?: string;
+        }
+
+        export interface LastReply {
+            no: number;
+            now: string;
+            name?: string;
+            com?: string;
+            time: number;
+            resto: number;
+            capcode?: string;
+            filename?: string;
+            ext?: string;
+            w?: number;
+            h?: number;
+            tn_w?: number;
+            tn_h?: number;
+            tim?: number;
+            md5?: string;
+            fsize?: number;
+            trip?: string;
+        }
+    }
 }

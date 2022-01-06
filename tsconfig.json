@@ -23,6 +23,7 @@
             "@board/*": ["./src/board/*"],
             "@monitor/*": ["./src/monitor/*"],
             "@thread/*": ["./src/thread/*"],
+            "@common/*": ["./src/common/*"],
             "@utils/*": ["./src/utils/*"]
         }
     }

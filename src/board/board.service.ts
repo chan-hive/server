@@ -6,18 +6,20 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import { Board } from "@board/models/board.model";
 
+import { InvalidationService } from "@common/invalidation.service";
+
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
 
 @Injectable()
-export class BoardService {
+export class BoardService implements InvalidationService {
     public constructor(@InjectRepository(Board) private readonly boardRepository: Repository<Board>) {}
 
     public async getBoards() {
         return this.boardRepository.find();
     }
 
-    public async invalidate() {
+    public async onInvalidate() {
         const result = await fetchJSON<API.Boards.Result>("https://a.4cdn.org/boards.json");
         const previousBoards = await this.getBoards();
         const previousBoardMap = _.chain(previousBoards)
