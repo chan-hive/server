@@ -22,6 +22,7 @@
             "@root/*": ["./src/*"],
             "@board/*": ["./src/board/*"],
             "@monitor/*": ["./src/monitor/*"],
+            "@thread/*": ["./src/thread/*"],
             "@utils/*": ["./src/utils/*"]
         }
     }

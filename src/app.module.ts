@@ -4,6 +4,7 @@ import { GraphQLModule } from "@nestjs/graphql";
 
 import { BoardModule } from "@board/board.module";
 import { MonitorModule } from "@monitor/monitor.module";
+import { ThreadModule } from "@thread/thread.module";
 
 import * as config from "@root/ormconfig";
 
@@ -15,6 +16,7 @@ import * as config from "@root/ormconfig";
         }),
         BoardModule,
         MonitorModule,
+        ThreadModule,
     ],
 })
 export class AppModule {}
