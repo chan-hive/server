@@ -1,12 +1,14 @@
 import * as _ from "lodash";
 import { Repository } from "typeorm";
 
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 
+import { ConfigService } from "@config/config.service";
+import { PostService } from "@post/post.service";
 import { BoardService } from "@board/board.service";
-import { Board } from "@board/models/board.model";
 
+import { Board } from "@board/models/board.model";
 import { Thread } from "@thread/models/thread.model";
 
 import { InvalidationService } from "@common/invalidation.service";
@@ -16,8 +18,12 @@ import { API } from "@utils/types";
 
 @Injectable()
 export class ThreadService implements InvalidationService {
+    private readonly logger = new Logger(ThreadService.name);
+
     public constructor(
         @Inject(BoardService) private readonly boardService: BoardService,
+        @Inject(PostService) private readonly postService: PostService,
+        @Inject(ConfigService) private readonly configService: ConfigService,
         @InjectRepository(Thread) private readonly threadRepository: Repository<Thread>,
     ) {}
 
@@ -29,61 +35,70 @@ export class ThreadService implements InvalidationService {
         return this.threadRepository.findByIds(board.threadIds);
     }
 
-    private getThreadIds(board: Board) {
-        return this.threadRepository
-            .createQueryBuilder("t")
-            .select("`t`.`id`")
-            .where("`t`.`boardId` = :boardId", { boardId: board.id })
-            .getRawMany<{ id: string }>()
-            .then(rows => rows.map(row => parseInt(row.id, 10)));
+    private getThreadIds(board?: Board) {
+        let builder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`");
+        if (board) {
+            builder = builder.where("`t`.`boardId` = :boardId", { boardId: board.id });
+        }
+
+        return builder.getRawMany<{ id: string }>().then(rows => rows.map(row => parseInt(row.id, 10)));
     }
 
     public async onInvalidate() {
         const boards = await this.boardService.getBoards();
-        const updatedThreads: Thread[] = [];
+        const targetBoardMap = this.configService.getTargetBoardMap();
+        let newEntities: Thread[] = [];
+        const oldThreadIds = new Set(await this.getThreadIds());
+
         for (const board of boards) {
-            if (board.id !== "wsg") {
+            if (!(board.id in targetBoardMap) || targetBoardMap[board.id].length === 0) {
                 continue;
             }
 
+            const passedThreads: API.Catalog.Page["threads"] = [];
             const pages = await fetchJSON<API.Catalog.Result>(`https://a.4cdn.org/${board.id}/catalog.json`);
-            const oldThreadIds = await this.getThreadIds(board);
+            const threads = _.chain(pages).map("threads").flatten().value();
+            const targets = targetBoardMap[board.id];
+            for (const thread of threads) {
+                for (const target of targets) {
+                    for (const filter of target.filters) {
+                        if (!this.configService.checkFilter(thread, filter)) {
+                            break;
+                        }
 
-            const oldThreads = await this.threadRepository.findByIds(oldThreadIds);
-            const oldThreadMap = _.chain(oldThreads)
-                .keyBy(t => t.id)
-                .mapValues()
-                .value();
-
-            const newThreads = _.chain(pages).map("threads").flatten().value();
-            const newThreadMap = _.chain(newThreads)
-                .keyBy(t => t.no)
-                .mapValues()
-                .value();
-
-            // update first.
-            for (const thread of oldThreads) {
-                if (!(thread.id in newThreadMap)) {
-                    thread.isDead = true;
-                    updatedThreads.push(thread);
+                        passedThreads.push(thread);
+                    }
                 }
             }
 
-            // then insert.
-            for (const thread of newThreads) {
-                if (thread.no in oldThreadMap) {
-                    continue;
-                }
+            const existing = _.countBy(passedThreads, thread => oldThreadIds.has(thread.no)).true || 0;
+            const created = passedThreads.length - existing;
 
+            this.logger.debug(
+                `Found ${passedThreads.length} threads on board /${board.id}/. [Created: ${created}, Existing: ${existing}]`,
+            );
+
+            for (const thread of passedThreads) {
                 const entity = this.threadRepository.create();
                 entity.id = thread.no;
                 entity.isDead = false;
                 entity.board = board;
 
-                updatedThreads.push(entity);
+                newEntities.push(entity);
             }
         }
 
-        await this.threadRepository.save(updatedThreads);
+        newEntities = await this.threadRepository.save(newEntities);
+        for (let i = 0; i < newEntities.length; i++) {
+            const thread = newEntities[i];
+
+            this.logger.debug(
+                `Fetching new post lists of thread #${thread.id} on board /${thread.boardId}/. (${i + 1}/${
+                    newEntities.length
+                })`,
+            );
+
+            await this.postService.fetchPosts(thread);
+        }
     }
 }

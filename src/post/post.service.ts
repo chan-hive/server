@@ -21,9 +21,9 @@ export class PostService {
         return this.postRepository.findByIds(thread.postIds);
     }
 
-    private async fetchPosts(thread: Thread) {
+    public async fetchPosts(thread: Thread) {
         const data = await fetchJSON<API.Thread.Result>(
-            `https://a.4cdn.org/${thread.boardId}/thread/${thread.id}.json`,
+            `https://a.4cdn.org/${thread.board.id}/thread/${thread.id}.json`,
         );
 
         const entities: Post[] = [];
@@ -32,11 +32,11 @@ export class PostService {
             entity.id = post.no;
             entity.name = post.name;
             entity.content = post.com;
-            entity.createdAt = moment(post.time).toDate();
+            entity.createdAt = moment(post.time * 1000).toDate();
             entity.thread = thread;
+            entity.isOP = "sub" in post;
 
             if ("sub" in post) {
-                entity.isOP = true;
                 entity.title = post.sub;
             }
 

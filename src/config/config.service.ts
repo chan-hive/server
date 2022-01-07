@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 import * as fs from "fs-extra";
 import * as path from "path";
 import * as yaml from "yaml";
@@ -5,22 +6,37 @@ import { z } from "zod";
 
 import { Injectable, OnModuleInit } from "@nestjs/common";
 
-import { Config } from "@utils/types";
+import { API, Config, ConfigFilter } from "@utils/types";
 import { CONFIG_VALIDATION_SCHEMA } from "@root/constants/validation";
+import { searchText } from "@utils/searchText";
 
 const POSSIBLE_CONFIG_FILENAMES: string[] = [".chanhiverc", "chanhiverc.yml", "chanhiverc.yaml", "chanhiverc.json"];
 
 @Injectable()
 export class ConfigService implements OnModuleInit {
-    private _config: Config | null = null;
+    private static async tryGetConfigData(): Promise<Config | false> {
+        for (const fileName of POSSIBLE_CONFIG_FILENAMES) {
+            if (!fs.existsSync(fileName)) {
+                continue;
+            }
 
-    public getConfig(): Config {
-        if (!this._config) {
-            throw new Error("You should load configuration first!");
+            const content = await fs.readFile(path.join(process.cwd(), fileName)).then(buffer => buffer.toString());
+            switch (path.extname(fileName).trim()) {
+                case ".yml":
+                case ".yaml":
+                    return yaml.parse(content);
+
+                case ".json":
+                case "": // .chanhiverc
+                    return JSON.parse(content);
+            }
         }
 
-        return this._config;
+        return false;
     }
+
+    private _config: Config | null = null;
+    private _targetBoardMap: { [key: string]: Config["targets"] } | null = null;
 
     public async onModuleInit() {
         const config = await ConfigService.tryGetConfigData();
@@ -43,26 +59,51 @@ export class ConfigService implements OnModuleInit {
         }
 
         this._config = config;
-    }
+        this._targetBoardMap = {};
+        for (const target of config.targets) {
+            for (const boardId of target.boards) {
+                if (!(boardId in this._targetBoardMap)) {
+                    this._targetBoardMap[boardId] = [];
+                }
 
-    private static async tryGetConfigData(): Promise<Config | false> {
-        for (const fileName of POSSIBLE_CONFIG_FILENAMES) {
-            if (!fs.existsSync(fileName)) {
-                continue;
-            }
-
-            const content = await fs.readFile(path.join(process.cwd(), fileName)).then(buffer => buffer.toString());
-            switch (path.extname(fileName).trim()) {
-                case ".yml":
-                case ".yaml":
-                    return yaml.parse(content);
-
-                case ".json":
-                case "": // .chanhiverc
-                    return JSON.parse(content);
+                this._targetBoardMap[boardId].push(target);
             }
         }
+    }
 
-        return false;
+    public getConfig(): Config {
+        if (!this._config) {
+            throw new Error("You should load configuration first!");
+        }
+
+        return this._config;
+    }
+    public getTargetBoardMap() {
+        if (!this._targetBoardMap) {
+            throw new Error("You should load configuration first!");
+        }
+
+        return _.cloneDeep(this._targetBoardMap);
+    }
+
+    public checkFilter(thread: API.Catalog.Thread, filter: ConfigFilter) {
+        if (filter.type === "text") {
+            return filter.at.some(targetType => {
+                let targetData: keyof typeof thread;
+                switch (targetType) {
+                    case "title":
+                        targetData = "sub";
+                        break;
+
+                    case "content":
+                        targetData = "com";
+                        break;
+                }
+
+                return searchText(thread[targetData], filter.content, filter.caseSensitive);
+            });
+        } else {
+            throw new Error(`Checking filter feature for type '${filter.type}' is not implemented yet.`);
+        }
     }
 }

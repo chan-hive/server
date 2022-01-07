@@ -6,5 +6,6 @@ import { ConfigResolver } from "@config/config.resolver";
 @Global()
 @Module({
     providers: [ConfigService, ConfigResolver],
+    exports: [ConfigService],
 })
 export class ConfigModule {}

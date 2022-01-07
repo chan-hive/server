@@ -1,19 +1,23 @@
 import * as _ from "lodash";
 import { Repository } from "typeorm";
 
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 
-import { Board } from "@board/models/board.model";
-
+import { ConfigService } from "@config/config.service";
 import { InvalidationService } from "@common/invalidation.service";
+
+import { Board } from "@board/models/board.model";
 
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
 
 @Injectable()
 export class BoardService implements InvalidationService {
-    public constructor(@InjectRepository(Board) private readonly boardRepository: Repository<Board>) {}
+    public constructor(
+        @Inject(ConfigService) private readonly configService: ConfigService,
+        @InjectRepository(Board) private readonly boardRepository: Repository<Board>,
+    ) {}
 
     public async getBoards() {
         return this.boardRepository.find();
