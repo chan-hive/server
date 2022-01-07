@@ -208,4 +208,43 @@ export namespace API {
             trip?: string;
         }
     }
+
+    export namespace Thread {
+        export interface Result {
+            posts: Post[];
+        }
+
+        export type Post = (BasePost | (BasePost & OPData)) | ((BasePost | (BasePost & OPData)) & File);
+
+        export interface BasePost {
+            no: number;
+            now: string;
+            name: string;
+            com?: string;
+            time: number;
+            resto: number;
+        }
+
+        export interface OPData {
+            sub?: string;
+            bumplimit?: number;
+            imagelimit?: number;
+            semantic_url?: string;
+            replies?: number;
+            images?: number;
+            unique_ips?: number;
+        }
+
+        export interface File {
+            filename: string;
+            ext: string;
+            w: number;
+            h: number;
+            tn_w: number;
+            tn_h: number;
+            tim: number;
+            md5: string;
+            fsize: number;
+        }
+    }
 }

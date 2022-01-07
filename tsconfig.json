@@ -23,7 +23,9 @@
             "@board/*": ["./src/board/*"],
             "@monitor/*": ["./src/monitor/*"],
             "@thread/*": ["./src/thread/*"],
+            "@post/*": ["./src/post/*"],
             "@common/*": ["./src/common/*"],
+            "@file/*": ["./src/file/*"],
             "@utils/*": ["./src/utils/*"]
         }
     }
