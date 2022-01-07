@@ -248,3 +248,21 @@ export namespace API {
         }
     }
 }
+
+export interface TextConfigFilter {
+    type: "text";
+    at: Array<"title" | "content">;
+    content: string;
+    caseSensitive?: boolean;
+}
+
+export type ConfigFilter = TextConfigFilter;
+
+export interface ConfigTarget {
+    boards: string[];
+    filters: ConfigFilter[];
+}
+
+export interface Config {
+    targets: ConfigTarget[];
+}

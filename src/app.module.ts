@@ -6,6 +6,7 @@ import { BoardModule } from "@board/board.module";
 import { MonitorModule } from "@monitor/monitor.module";
 import { ThreadModule } from "@thread/thread.module";
 import { PostModule } from "@post/post.module";
+import { ConfigModule } from "@config/config.module";
 
 import * as config from "@root/ormconfig";
 
@@ -19,6 +20,7 @@ import * as config from "@root/ormconfig";
         MonitorModule,
         ThreadModule,
         PostModule,
+        ConfigModule,
     ],
 })
 export class AppModule {}

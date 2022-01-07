@@ -26,6 +26,7 @@
             "@post/*": ["./src/post/*"],
             "@common/*": ["./src/common/*"],
             "@file/*": ["./src/file/*"],
+            "@config/*": ["./src/config/*"],
             "@utils/*": ["./src/utils/*"]
         }
     }
