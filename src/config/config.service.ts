@@ -14,7 +14,7 @@ const POSSIBLE_CONFIG_FILENAMES: string[] = [".chanhiverc", "chanhiverc.yml", "c
 export class ConfigService implements OnModuleInit {
     private _config: Config | null = null;
 
-    public get config() {
+    public getConfig(): Config {
         if (!this._config) {
             throw new Error("You should load configuration first!");
         }
