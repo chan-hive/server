@@ -33,6 +33,7 @@ export class PostService {
         );
 
         const entities: Post[] = [];
+        const fileBuffer: [Post, API.Thread.File][] = [];
         for (const post of data.posts) {
             const entity = this.postRepository.create();
             entity.id = post.no;
@@ -47,10 +48,16 @@ export class PostService {
             }
 
             if ("filename" in post) {
-                entity.file = await this.fileService.ensure(post);
+                fileBuffer.push([entity, post]);
             }
 
             entities.push(entity);
+        }
+
+        const files = await this.fileService.bulkEnsure(fileBuffer.map(t => t[1]));
+        const filePosts = fileBuffer.map(t => t[0]);
+        for (let i = 0; i < fileBuffer.length; i++) {
+            filePosts[i].file = files[i];
         }
 
         return await this.postRepository.save(entities);
