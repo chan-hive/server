@@ -1,17 +1,23 @@
 import * as moment from "moment";
 import { Repository } from "typeorm";
 
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+
+import { FileService } from "@file/file.service";
 
 import { Thread } from "@thread/models/thread.model";
 import { Post } from "@post/models/post.model";
+
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
 
 @Injectable()
 export class PostService {
-    public constructor(@InjectRepository(Post) private readonly postRepository: Repository<Post>) {}
+    public constructor(
+        @InjectRepository(Post) private readonly postRepository: Repository<Post>,
+        @Inject(FileService) private readonly fileService: FileService,
+    ) {}
 
     public async getPosts(thread: Thread) {
         if (thread.postIds.length <= 0) {
@@ -38,6 +44,10 @@ export class PostService {
 
             if ("sub" in post) {
                 entity.title = post.sub;
+            }
+
+            if ("filename" in post) {
+                entity.file = await this.fileService.ensure(post);
             }
 
             entities.push(entity);

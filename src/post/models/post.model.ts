@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, PrimaryColumn, RelationId } from "typeorm";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 
 import { Thread } from "@thread/models/thread.model";
+import { File } from "@file/models/file.model";
 
 @Entity({ name: "posts" })
 @ObjectType()
@@ -38,4 +39,13 @@ export class Post {
 
     @RelationId((entity: Post) => entity.thread)
     public threadId!: Thread["id"];
+
+    //
+    // Relation (Many-to-One) - File => Post
+    //
+    @ManyToOne(() => File, file => file.posts)
+    public file!: File;
+
+    @RelationId((entity: Post) => entity.file)
+    public fileId!: File["id"];
 }
