@@ -1,4 +1,5 @@
 import { Request } from "express";
+import * as path from "path";
 
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
@@ -35,13 +36,17 @@ import * as config from "@root/ormconfig";
             imports: [PostModule, FileModule],
             inject: [PostService, FileService],
             useFactory: (postService: PostService, fileService: FileService) => ({
-                autoSchemaFile: true,
+                autoSchemaFile: path.join(process.cwd(), "..", "app", "schema.gql"),
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 context: async (_: { req: Request }): Promise<GraphQLContext> => {
                     return {
                         postLoader: createPostLoader(postService),
                         fileLoader: createFileLoader(fileService),
                     };
+                },
+                cors: {
+                    credentials: true,
+                    origin: true,
                 },
             }),
         }),

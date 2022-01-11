@@ -32,12 +32,22 @@ export class ThreadService implements InvalidationService {
         @InjectRepository(Thread) private readonly threadRepository: Repository<Thread>,
     ) {}
 
-    public getThreads(board?: Board) {
+    public getThreads(board?: Board, count?: number) {
         if (!board) {
-            return this.threadRepository.find();
+            return this.threadRepository.find({
+                take: count,
+                order: {
+                    id: "DESC",
+                },
+            });
         }
 
-        return this.threadRepository.findByIds(board.threadIds);
+        return this.threadRepository.findByIds(board.threadIds, {
+            take: count,
+            order: {
+                id: "DESC",
+            },
+        });
     }
 
     private getThreadIds(board?: Board) {
