@@ -9,6 +9,7 @@ import { FileService } from "@file/file.service";
 import { Thread } from "@thread/models/thread.model";
 import { Post } from "@post/models/post.model";
 
+import { getEntityByIds } from "@utils/getEntityByIds";
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
 
@@ -21,6 +22,9 @@ export class PostService {
 
     public async getPosts(thread: Thread) {
         return this.postRepository.findByIds(thread.postIds);
+    }
+    public async getPostByIds(ids: ReadonlyArray<Post["id"]>) {
+        return getEntityByIds(this.postRepository, [...ids]);
     }
     public async getOPPost(thread: Thread) {
         const result = await this.postRepository.findByIds([thread.id]);

@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
+import type { createPostLoader } from "@post/post.loader";
+import type { createFileLoader } from "@file/file.loader";
+
 export namespace API {
     export namespace Boards {
         export interface Result {
@@ -273,4 +276,9 @@ export type DriverConfig = LocalDriverConfig;
 export interface Config {
     driver: DriverConfig | null;
     targets: ConfigTarget[];
+}
+
+export interface GraphQLContext {
+    postLoader: ReturnType<typeof createPostLoader>;
+    fileLoader: ReturnType<typeof createFileLoader>;
 }

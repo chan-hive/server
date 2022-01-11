@@ -9,6 +9,7 @@ import { InjectQueue } from "@nestjs/bull";
 import { File } from "@file/models/file.model";
 import { Board } from "@board/models/board.model";
 
+import { getEntityByIds } from "@utils/getEntityByIds";
 import { API } from "@utils/types";
 
 @Injectable()
@@ -26,6 +27,9 @@ export class FileService {
                 id: fileId,
             },
         });
+    }
+    public getFileByIds(keys: ReadonlyArray<number>) {
+        return getEntityByIds(this.fileRepository, [...keys]);
     }
 
     public async ensure(rawFile: API.Thread.File, board: Board) {
