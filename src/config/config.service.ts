@@ -69,8 +69,25 @@ export class ConfigService implements OnModuleInit {
                 this._targetBoardMap[boardId].push(target);
             }
         }
+
+        return this._config;
     }
 
+    public getArchivePath = async () => {
+        if (!this._config) {
+            this._config = await this.onModuleInit();
+        }
+
+        if (!this._config.driver || this._config.driver.type !== "local") {
+            return null;
+        }
+
+        if (path.isAbsolute(this._config.driver.path)) {
+            return this._config.driver.path;
+        }
+
+        return path.join(process.cwd(), this._config.driver.path);
+    };
     public getConfig(): Config {
         if (!this._config) {
             throw new Error("You should load configuration first!");

@@ -5,6 +5,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { GraphQLModule } from "@nestjs/graphql";
 import { BullModule } from "@nestjs/bull";
+import { ServeStaticModule } from "@nestjs/serve-static";
 
 import { PostModule } from "@post/post.module";
 import { PostService } from "@post/post.service";
@@ -22,9 +23,27 @@ import { ConfigModule } from "@config/config.module";
 import { GraphQLContext } from "@utils/types";
 
 import * as config from "@root/ormconfig";
+import { ConfigService } from "@config/config.service";
 
 @Module({
     imports: [
+        ServeStaticModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const archivePath = await configService.getArchivePath();
+                if (!archivePath) {
+                    return [];
+                }
+
+                return [
+                    {
+                        rootPath: archivePath,
+                        serveRoot: "/static/",
+                    },
+                ];
+            },
+        }),
         BullModule.forRoot({
             redis: {
                 host: "localhost",
