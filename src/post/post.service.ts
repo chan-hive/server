@@ -20,11 +20,11 @@ export class PostService {
     ) {}
 
     public async getPosts(thread: Thread) {
-        if (thread.postIds.length <= 0) {
-            return this.fetchPosts(thread);
-        }
-
         return this.postRepository.findByIds(thread.postIds);
+    }
+    public async getOPPost(thread: Thread) {
+        const result = await this.postRepository.findByIds([thread.id]);
+        return result[0];
     }
 
     public async fetchPosts(thread: Thread) {

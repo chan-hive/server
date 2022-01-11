@@ -20,6 +20,14 @@ export class FileService {
         @InjectQueue("file") private fileQueue: Queue,
     ) {}
 
+    public getFile(fileId: number) {
+        return this.fileRepository.findOne({
+            where: {
+                id: fileId,
+            },
+        });
+    }
+
     public async ensure(rawFile: API.Thread.File, board: Board) {
         let file = await this.fileRepository.findOne({
             where: {

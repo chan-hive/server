@@ -10,6 +10,11 @@ import { Post } from "@post/models/post.model";
 export class ThreadResolver {
     public constructor(@Inject(PostService) private readonly postService: PostService) {}
 
+    @ResolveField(() => Post)
+    public async opPost(@Root() thread: Thread) {
+        return this.postService.getOPPost(thread);
+    }
+
     @ResolveField(() => [Post])
     public async posts(@Root() thread: Thread) {
         return this.postService.getPosts(thread);

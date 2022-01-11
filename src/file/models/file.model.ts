@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, RelationId } from "typeorm";
-import { Field, Int, ObjectType } from "@nestjs/graphql";
+import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 
 import { Post } from "@post/models/post.model";
 import { Board } from "@board/models/board.model";
@@ -43,7 +43,7 @@ export class File {
     @Column({ type: "int" })
     public thumbnailHeight!: number;
 
-    @Field(() => Int)
+    @Field(() => Float)
     @Column({ type: "bigint" })
     public uploadedTimestamp!: number;
 

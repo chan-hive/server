@@ -1,5 +1,5 @@
 import { Inject } from "@nestjs/common";
-import { Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
+import { Args, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 
 import { BoardService } from "@board/board.service";
 import { Board } from "@board/models/board.model";
@@ -13,6 +13,11 @@ export class BoardResolver {
         @Inject(BoardService) private readonly boardService: BoardService,
         @Inject(ThreadService) private readonly threadService: ThreadService,
     ) {}
+
+    @Query(() => Board, { nullable: true })
+    public board(@Args("id", { type: () => String }) id: string) {
+        return this.boardService.getBoard(id);
+    }
 
     @Query(() => [Board])
     public boards() {

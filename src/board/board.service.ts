@@ -19,6 +19,13 @@ export class BoardService implements InvalidationService {
         @InjectRepository(Board) private readonly boardRepository: Repository<Board>,
     ) {}
 
+    public async getBoard(id: string) {
+        return this.boardRepository.findOne({
+            where: {
+                id,
+            },
+        });
+    }
     public async getBoards() {
         return this.boardRepository.find();
     }
