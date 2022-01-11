@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { GraphQLModule } from "@nestjs/graphql";
+import { BullModule } from "@nestjs/bull";
 
 import { BoardModule } from "@board/board.module";
 import { MonitorModule } from "@monitor/monitor.module";
@@ -13,6 +14,12 @@ import * as config from "@root/ormconfig";
 
 @Module({
     imports: [
+        BullModule.forRoot({
+            redis: {
+                host: "localhost",
+                port: 9001,
+            },
+        }),
         TypeOrmModule.forRoot(config),
         GraphQLModule.forRoot({
             autoSchemaFile: true,

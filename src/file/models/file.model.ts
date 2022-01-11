@@ -1,7 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, RelationId } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, RelationId } from "typeorm";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 
 import { Post } from "@post/models/post.model";
+import { Board } from "@board/models/board.model";
 
 @Entity({ name: "files" })
 @ObjectType()
@@ -46,6 +47,10 @@ export class File {
     @Column({ type: "bigint" })
     public uploadedTimestamp!: number;
 
+    @Field(() => Boolean)
+    @Column({ type: "boolean" })
+    public isArchived!: boolean;
+
     //
     // Relation (One-to-Many) - Post => File
     //
@@ -54,4 +59,13 @@ export class File {
 
     @RelationId((entity: File) => entity.posts)
     public postIds!: Post["id"][];
+
+    //
+    // Relation (Many-to-One) - Board => File
+    //
+    @ManyToOne(() => Board, board => board.files)
+    public board!: Board;
+
+    @RelationId((entity: File) => entity.board)
+    public boardId!: Board["id"];
 }

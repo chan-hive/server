@@ -1,10 +1,13 @@
 import * as _ from "lodash";
 import { In, Repository } from "typeorm";
+import { Queue } from "bull";
 
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { InjectQueue } from "@nestjs/bull";
 
 import { File } from "@file/models/file.model";
+import { Board } from "@board/models/board.model";
 
 import { API } from "@utils/types";
 
@@ -12,9 +15,12 @@ import { API } from "@utils/types";
 export class FileService {
     private readonly logger = new Logger(FileService.name);
 
-    public constructor(@InjectRepository(File) private readonly fileRepository: Repository<File>) {}
+    public constructor(
+        @InjectRepository(File) private readonly fileRepository: Repository<File>,
+        @InjectQueue("file") private fileQueue: Queue,
+    ) {}
 
-    public async ensure(rawFile: API.Thread.File) {
+    public async ensure(rawFile: API.Thread.File, board: Board) {
         let file = await this.fileRepository.findOne({
             where: {
                 md5: rawFile.md5,
@@ -37,14 +43,14 @@ export class FileService {
         file.thumbnailWidth = rawFile.tn_w;
         file.thumbnailHeight = rawFile.tn_h;
         file.uploadedTimestamp = rawFile.tim;
+        file.board = board;
 
         return this.fileRepository.save(file);
     }
-
-    public async bulkEnsure(rawFiles: API.Thread.File[]) {
+    public async bulkEnsure(rawFiles: [API.Thread.File, Board][]) {
         const oldFiles = await this.fileRepository.find({
             where: {
-                md5: In(rawFiles.map(rf => rf.md5)),
+                md5: In(rawFiles.map(([rf]) => rf.md5)),
             },
         });
         const oldFilesMap = _.chain(oldFiles)
@@ -52,10 +58,9 @@ export class FileService {
             .mapValues()
             .value();
 
-        let totalSize = 0;
         const entities = rawFiles
-            .filter(rf => !(rf.md5 in oldFilesMap))
-            .map(item => {
+            .filter(([rf]) => !(rf.md5 in oldFilesMap))
+            .map(([item, board]) => {
                 const file = this.fileRepository.create();
                 file.name = item.filename;
                 file.extension = item.ext;
@@ -66,12 +71,11 @@ export class FileService {
                 file.thumbnailWidth = item.tn_w;
                 file.thumbnailHeight = item.tn_h;
                 file.uploadedTimestamp = item.tim;
-                totalSize += item.fsize;
+                file.isArchived = false;
+                file.board = board;
 
                 return file;
             });
-
-        this.logger.debug(`Registering new ${entities.length} files. (${totalSize} bytes)`);
 
         const newFiles = await this.fileRepository.save(entities);
         const fileMap = {
@@ -82,12 +86,42 @@ export class FileService {
                 .value(),
         };
 
-        return rawFiles.map(({ md5 }) => {
+        return rawFiles.map(([{ md5 }]) => {
             if (!(md5 in fileMap)) {
                 throw new Error(`Failed to find file with hash (${md5}) in ensured file dictionary.`);
             }
 
             return fileMap[md5];
         });
+    }
+
+    public async download(file: File) {
+        await this.fileQueue.add("download", file, {
+            removeOnComplete: true,
+            removeOnFail: true,
+        });
+    }
+    public async bulkDownload(files: File[]) {
+        await this.fileQueue.addBulk(
+            files.map(f => ({
+                name: "download",
+                data: f,
+                opts: {
+                    removeOnComplete: true,
+                    removeOnFail: true,
+                },
+            })),
+        );
+    }
+
+    public async markFileAsArchived(file: File) {
+        await this.fileRepository.update(
+            {
+                id: file.id,
+            },
+            {
+                isArchived: true,
+            },
+        );
     }
 }

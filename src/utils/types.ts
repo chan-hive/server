@@ -263,6 +263,14 @@ export interface ConfigTarget {
     filters: ConfigFilter[];
 }
 
+export interface LocalDriverConfig {
+    type: "local";
+    path: string;
+}
+
+export type DriverConfig = LocalDriverConfig;
+
 export interface Config {
+    driver: DriverConfig | null;
     targets: ConfigTarget[];
 }

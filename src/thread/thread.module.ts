@@ -6,11 +6,12 @@ import { ThreadResolver } from "@thread/thread.resolver";
 
 import { BoardModule } from "@board/board.module";
 import { PostModule } from "@post/post.module";
+import { FileModule } from "@file/file.module";
 
 import { Thread } from "@thread/models/thread.model";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Thread]), forwardRef(() => BoardModule), PostModule],
+    imports: [TypeOrmModule.forFeature([Thread]), forwardRef(() => BoardModule), PostModule, FileModule],
     providers: [ThreadService, ThreadResolver],
     exports: [ThreadService],
 })

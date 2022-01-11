@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
-import { Config, TextConfigFilter } from "@utils/types";
+import { Config, LocalDriverConfig, TextConfigFilter } from "@utils/types";
 import * as fs from "fs";
 
 type ZodShape<T> = {
@@ -24,7 +24,13 @@ const CONFIG_TARGET_VALIDATOR: ZodShape<Config["targets"][0]> = {
     filters: z.array(z.object(CONFIG_TARGET_TEXT_FILTER)),
 };
 
+const CONFIG_LOCAL_DRIVER: ZodShape<LocalDriverConfig> = {
+    type: z.enum(["local"]),
+    path: z.string(),
+};
+
 const CONFIG_VALIDATOR: ZodShape<Config> = {
+    driver: z.union([z.object(CONFIG_LOCAL_DRIVER), z.null()]),
     targets: z.array(z.object(CONFIG_TARGET_VALIDATOR)),
 };
 

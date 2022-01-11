@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Repository } from "typeorm";
+import * as fileSize from "filesize";
 
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -7,9 +8,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { ConfigService } from "@config/config.service";
 import { PostService } from "@post/post.service";
 import { BoardService } from "@board/board.service";
+import { FileService } from "@file/file.service";
 
 import { Board } from "@board/models/board.model";
 import { Thread } from "@thread/models/thread.model";
+import { Post } from "@post/models/post.model";
+import { File } from "@file/models/file.model";
 
 import { InvalidationService } from "@common/invalidation.service";
 
@@ -23,6 +27,7 @@ export class ThreadService implements InvalidationService {
     public constructor(
         @Inject(BoardService) private readonly boardService: BoardService,
         @Inject(PostService) private readonly postService: PostService,
+        @Inject(FileService) private readonly fileService: FileService,
         @Inject(ConfigService) private readonly configService: ConfigService,
         @InjectRepository(Thread) private readonly threadRepository: Repository<Thread>,
     ) {}
@@ -89,16 +94,34 @@ export class ThreadService implements InvalidationService {
         }
 
         newEntities = await this.threadRepository.save(newEntities);
+
+        const newPosts: Post[] = [];
         for (let i = 0; i < newEntities.length; i++) {
             const thread = newEntities[i];
 
             this.logger.debug(
-                `Fetching new post lists of thread #${thread.id} on board /${thread.boardId}/. (${i + 1}/${
+                `Fetching new post lists of thread #${thread.id} on board /${thread.board.id}/. (${i + 1}/${
                     newEntities.length
                 })`,
             );
 
-            await this.postService.fetchPosts(thread);
+            newPosts.push(...(await this.postService.fetchPosts(thread)));
         }
+
+        const allFiles = _.chain(newPosts)
+            .map(p => p.file)
+            .filter<File>((p: File | null): p is File => Boolean(p))
+            .uniqBy(f => f.md5)
+            .value();
+
+        const totalSize = fileSize(
+            _.chain(allFiles)
+                .map(f => f.size)
+                .sum()
+                .value(),
+        );
+
+        await this.fileService.bulkDownload(allFiles);
+        this.logger.debug(`Detected ${allFiles.length} files (${totalSize}).`);
     }
 }
