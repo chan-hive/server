@@ -60,7 +60,7 @@ export class ThreadService implements InvalidationService {
                 continue;
             }
 
-            const passedThreads: API.Catalog.Page["threads"] = [];
+            let passedThreads: API.Catalog.Page["threads"] = [];
             const pages = await fetchJSON<API.Catalog.Result>(`https://a.4cdn.org/${board.id}/catalog.json`);
             const threads = _.chain(pages).map("threads").flatten().value();
             const targets = targetBoardMap[board.id];
@@ -76,6 +76,7 @@ export class ThreadService implements InvalidationService {
                 }
             }
 
+            passedThreads = _.uniqBy(passedThreads, thread => thread.no);
             const existing = _.countBy(passedThreads, thread => oldThreadIds.has(thread.no)).true || 0;
             const created = passedThreads.length - existing;
 
