@@ -37,7 +37,7 @@ export class PostService {
         for (const post of data.posts) {
             const entity = this.postRepository.create();
             entity.id = post.no;
-            entity.name = post.name;
+            entity.name = post.name || "Anonymous";
             entity.content = post.com;
             entity.createdAt = moment(post.time * 1000).toDate();
             entity.thread = thread;

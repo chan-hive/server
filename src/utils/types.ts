@@ -219,7 +219,7 @@ export namespace API {
         export interface BasePost {
             no: number;
             now: string;
-            name: string;
+            name?: string;
             com?: string;
             time: number;
             resto: number;
