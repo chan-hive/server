@@ -1,5 +1,6 @@
 import * as moment from "moment";
 import { Repository } from "typeorm";
+import { decode } from "html-entities";
 
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -44,7 +45,7 @@ export class PostService {
             entity.isOP = "sub" in post;
 
             if ("sub" in post) {
-                entity.title = post.sub;
+                entity.title = decode(post.sub);
             }
 
             if ("filename" in post) {
