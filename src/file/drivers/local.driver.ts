@@ -36,8 +36,9 @@ export class LocalDriver extends BaseDriver {
         await fs.writeFile(path.join(this.config.path, thumbnailFileName), thumbnailBuffer);
     }
 
-    public async pull(file: File): Promise<string | Buffer> {
-        return "";
+    public async pull(file: File, thumbnail?: boolean): Promise<string | Buffer> {
+        const fileName = `${file.uploadedTimestamp}${thumbnail ? "s" : ""}${file.extension}`;
+        return fs.readFile(path.join(this.config.path, fileName));
     }
 
     public async exists(file: File): Promise<boolean> {
