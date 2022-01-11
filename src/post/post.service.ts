@@ -26,10 +26,6 @@ export class PostService {
     public async getPostByIds(ids: ReadonlyArray<Post["id"]>) {
         return getEntityByIds(this.postRepository, [...ids]);
     }
-    public async getOPPost(thread: Thread) {
-        const result = await this.postRepository.findByIds([thread.id]);
-        return result[0];
-    }
 
     public async fetchPosts(thread: Thread) {
         const data = await fetchJSON<API.Thread.Result>(

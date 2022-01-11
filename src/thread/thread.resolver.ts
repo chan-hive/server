@@ -13,8 +13,8 @@ export class ThreadResolver {
     public constructor(@Inject(PostService) private readonly postService: PostService) {}
 
     @ResolveField(() => Post)
-    public async opPost(@Root() thread: Thread) {
-        return this.postService.getOPPost(thread);
+    public async opPost(@Root() thread: Thread, @Context("postLoader") postLoader: GraphQLContext["postLoader"]) {
+        return postLoader.load(thread.id);
     }
 
     @ResolveField(() => [Post])
