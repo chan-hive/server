@@ -3,6 +3,7 @@ import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 
 import { Post } from "@post/models/post.model";
 import { Board } from "@board/models/board.model";
+import { Thread } from "@thread/models/thread.model";
 
 @Entity({ name: "files" })
 @ObjectType()
@@ -68,4 +69,13 @@ export class File {
 
     @RelationId((entity: File) => entity.board)
     public boardId!: Board["id"];
+
+    //
+    // Relation (Many-to-One) - Thread => File
+    //
+    @ManyToOne(() => Thread, thread => thread.files)
+    public thread!: Thread;
+
+    @RelationId((entity: File) => entity.thread)
+    public threadId!: Thread["id"];
 }

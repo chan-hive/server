@@ -21,6 +21,16 @@ export class ThreadResolver {
         return this.threadService.getThreads(undefined, count);
     }
 
+    @ResolveField(() => Int)
+    public async postCount(@Root() thread: Thread) {
+        return thread.postIds.length;
+    }
+
+    @ResolveField(() => Int)
+    public async fileCount(@Root() thread: Thread) {
+        return thread.fileIds.length;
+    }
+
     @ResolveField(() => Post)
     public async opPost(@Root() thread: Thread, @Context("postLoader") postLoader: GraphQLContext["postLoader"]) {
         return postLoader.load(thread.id);

@@ -4,6 +4,7 @@ import { Field, Int, ObjectType } from "@nestjs/graphql";
 
 import { Board } from "@board/models/board.model";
 import { Post } from "@post/models/post.model";
+import { File } from "@file/models/file.model";
 
 @Entity({ name: "threads" })
 @ObjectType()
@@ -33,4 +34,13 @@ export class Thread {
 
     @RelationId((entity: Thread) => entity.posts)
     public postIds!: Post["id"][];
+
+    //
+    // Relation (One-to-Many) - File => Thread
+    //
+    @OneToMany(() => File, file => file.thread)
+    public files!: File[];
+
+    @RelationId((entity: Thread) => entity.files)
+    public fileIds!: File["id"][];
 }

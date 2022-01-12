@@ -11,6 +11,7 @@ import { Board } from "@board/models/board.model";
 
 import { getEntityByIds } from "@utils/getEntityByIds";
 import { API } from "@utils/types";
+import { Thread } from "@root/thread/models/thread.model";
 
 @Injectable()
 export class FileService {
@@ -32,7 +33,7 @@ export class FileService {
         return getEntityByIds(this.fileRepository, [...keys]);
     }
 
-    public async ensure(rawFile: API.Thread.File, board: Board) {
+    public async ensure(rawFile: API.Thread.File, board: Board, thread: Thread) {
         let file = await this.fileRepository.findOne({
             where: {
                 md5: rawFile.md5,
@@ -56,10 +57,11 @@ export class FileService {
         file.thumbnailHeight = rawFile.tn_h;
         file.uploadedTimestamp = rawFile.tim;
         file.board = board;
+        file.thread = thread;
 
         return this.fileRepository.save(file);
     }
-    public async bulkEnsure(rawFiles: [API.Thread.File, Board][]) {
+    public async bulkEnsure(rawFiles: [API.Thread.File, Board, Thread][]) {
         const oldFiles = await this.fileRepository.find({
             where: {
                 md5: In(rawFiles.map(([rf]) => rf.md5)),
@@ -72,7 +74,7 @@ export class FileService {
 
         const entities = rawFiles
             .filter(([rf]) => !(rf.md5 in oldFilesMap))
-            .map(([item, board]) => {
+            .map(([item, board, thread]) => {
                 const file = this.fileRepository.create();
                 file.name = item.filename;
                 file.extension = item.ext;
@@ -85,6 +87,7 @@ export class FileService {
                 file.uploadedTimestamp = item.tim;
                 file.isArchived = false;
                 file.board = board;
+                file.thread = thread;
 
                 return file;
             });

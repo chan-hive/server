@@ -55,7 +55,7 @@ export class PostService {
             entities.push(entity);
         }
 
-        const files = await this.fileService.bulkEnsure(fileBuffer.map(t => [t[1], thread.board]));
+        const files = await this.fileService.bulkEnsure(fileBuffer.map(t => [t[1], thread.board, thread]));
         const filePosts = fileBuffer.map(t => t[0]);
         for (let i = 0; i < fileBuffer.length; i++) {
             filePosts[i].file = files[i];
