@@ -122,6 +122,7 @@ export class ThreadService implements InvalidationService {
         const allFiles = _.chain(newPosts)
             .map(p => p.file)
             .filter<File>((p: File | null): p is File => Boolean(p))
+            .filter(p => p.isArchived === false)
             .uniqBy(f => f.md5)
             .value();
 
@@ -133,6 +134,6 @@ export class ThreadService implements InvalidationService {
         );
 
         await this.fileService.bulkDownload(allFiles);
-        this.logger.debug(`Detected ${allFiles.length} files (${totalSize}).`);
+        this.logger.debug(`Detected new ${allFiles.length} files (${totalSize}).`);
     }
 }
