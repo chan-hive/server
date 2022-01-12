@@ -6,6 +6,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { GraphQLModule } from "@nestjs/graphql";
 import { BullModule } from "@nestjs/bull";
 import { ServeStaticModule } from "@nestjs/serve-static";
+import { ScheduleModule } from "@nestjs/schedule";
 
 import { PostModule } from "@post/post.module";
 import { PostService } from "@post/post.service";
@@ -15,20 +16,22 @@ import { FileModule } from "@file/file.module";
 import { FileService } from "@file/file.service";
 import { createFileLoader } from "@file/file.loader";
 
+import { ConfigModule } from "@config/config.module";
+import { ConfigService } from "@config/config.service";
+
 import { BoardModule } from "@board/board.module";
+import { BoardService } from "@board/board.service";
+
 import { MonitorModule } from "@monitor/monitor.module";
 import { ThreadModule } from "@thread/thread.module";
-import { ConfigModule } from "@config/config.module";
-
 import { GraphQLContext } from "@utils/types";
 
 import * as config from "@root/ormconfig";
-import { ConfigService } from "@config/config.service";
 import { createBoardLoader } from "@board/board.loader";
-import { BoardService } from "@board/board.service";
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
         ServeStaticModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],

@@ -82,11 +82,18 @@
                 ],
                 "additionalProperties": false
             }
+        },
+        "monitorInterval": {
+            "type": [
+                "number",
+                "string"
+            ]
         }
     },
     "required": [
         "driver",
-        "targets"
+        "targets",
+        "monitorInterval"
     ],
     "additionalProperties": false
 }

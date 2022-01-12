@@ -32,6 +32,7 @@ const CONFIG_LOCAL_DRIVER: ZodShape<LocalDriverConfig> = {
 const CONFIG_VALIDATOR: ZodShape<Config> = {
     driver: z.union([z.object(CONFIG_LOCAL_DRIVER), z.null()]),
     targets: z.array(z.object(CONFIG_TARGET_VALIDATOR)),
+    monitorInterval: z.union([z.number(), z.string()]),
 };
 
 export const CONFIG_VALIDATION_SCHEMA = z.object(CONFIG_VALIDATOR);

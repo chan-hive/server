@@ -277,6 +277,7 @@ export type DriverConfig = LocalDriverConfig;
 export interface Config {
     driver: DriverConfig | null;
     targets: ConfigTarget[];
+    monitorInterval: string | number;
 }
 
 export interface GraphQLContext {
