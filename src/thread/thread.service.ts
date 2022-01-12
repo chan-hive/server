@@ -19,6 +19,8 @@ import { InvalidationService } from "@common/invalidation.service";
 
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
+import * as moment from "moment";
+import { getEntityByIds } from "@utils/getEntityByIds";
 
 @Injectable()
 export class ThreadService implements InvalidationService {
@@ -32,14 +34,22 @@ export class ThreadService implements InvalidationService {
         @InjectRepository(Thread) private readonly threadRepository: Repository<Thread>,
     ) {}
 
-    public getThreads(board?: Board, count?: number) {
+    public async getThreads(board?: Board, count?: number, before?: Date | null) {
         if (!board) {
-            return this.threadRepository.find({
-                take: count,
-                order: {
-                    id: "DESC",
-                },
-            });
+            let queryBuilder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`", "id");
+            if (before) {
+                queryBuilder = queryBuilder.where("`t`.`createdAt` < :before", {
+                    before: moment(before).format("YYYY-MM-DD HH:mm:ss"),
+                });
+            }
+
+            const ids = await queryBuilder
+                .take(count)
+                .orderBy("`t`.`createdAt`", "DESC")
+                .getRawMany<{ id: number }>()
+                .then(rows => rows.map(row => row.id));
+
+            return getEntityByIds(this.threadRepository, ids);
         }
 
         return this.threadRepository.findByIds(board.threadIds, {
@@ -99,6 +109,7 @@ export class ThreadService implements InvalidationService {
                 entity.id = thread.no;
                 entity.isDead = false;
                 entity.board = board;
+                entity.createdAt = moment(thread.time * 1000).toDate();
 
                 newEntities.push(entity);
             }

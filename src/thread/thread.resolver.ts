@@ -18,8 +18,11 @@ export class ThreadResolver {
     ) {}
 
     @Query(() => [Thread])
-    public async threads(@Args("count", { type: () => Int }) count: number) {
-        return this.threadService.getThreads(undefined, count);
+    public async threads(
+        @Args("count", { type: () => Int }) count: number,
+        @Args("before", { type: () => Date, nullable: true }) before?: Date | null,
+    ) {
+        return this.threadService.getThreads(undefined, count, before);
     }
 
     @ResolveField(() => Int)

@@ -17,6 +17,10 @@ export class Thread {
     @Column({ type: "bool" })
     public isDead!: boolean;
 
+    @Field(() => Date)
+    @Column({ type: "datetime" })
+    public createdAt!: Date;
+
     //
     // Relation (Many-to-One) - Board => Thread
     //
