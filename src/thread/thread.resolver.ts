@@ -8,6 +8,7 @@ import { PostService } from "@post/post.service";
 import { Post } from "@post/models/post.model";
 
 import { GraphQLContext } from "@utils/types";
+import { Board } from "@board/models/board.model";
 
 @Resolver(() => Thread)
 export class ThreadResolver {
@@ -29,6 +30,11 @@ export class ThreadResolver {
     @ResolveField(() => Int)
     public async fileCount(@Root() thread: Thread) {
         return thread.fileIds.length;
+    }
+
+    @ResolveField(() => Board)
+    public async board(@Root() thread: Thread, @Context("boardLoader") boardLoader: GraphQLContext["boardLoader"]) {
+        return boardLoader.load(thread.boardId);
     }
 
     @ResolveField(() => Post)

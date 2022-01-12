@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import type { createPostLoader } from "@post/post.loader";
 import type { createFileLoader } from "@file/file.loader";
+import type { createBoardLoader } from "@board/board.loader";
 
 export namespace API {
     export namespace Boards {
@@ -281,4 +282,5 @@ export interface Config {
 export interface GraphQLContext {
     postLoader: ReturnType<typeof createPostLoader>;
     fileLoader: ReturnType<typeof createFileLoader>;
+    boardLoader: ReturnType<typeof createBoardLoader>;
 }

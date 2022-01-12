@@ -11,6 +11,7 @@ import { Board } from "@board/models/board.model";
 
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
+import { getEntityByIds } from "@utils/getEntityByIds";
 
 @Injectable()
 export class BoardService implements InvalidationService {
@@ -28,6 +29,9 @@ export class BoardService implements InvalidationService {
     }
     public async getBoards() {
         return this.boardRepository.find();
+    }
+    public async getBoardByIds(keys: ReadonlyArray<string>) {
+        return getEntityByIds(this.boardRepository, [...keys]);
     }
 
     public async onInvalidate() {

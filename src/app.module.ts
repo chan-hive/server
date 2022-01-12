@@ -24,6 +24,8 @@ import { GraphQLContext } from "@utils/types";
 
 import * as config from "@root/ormconfig";
 import { ConfigService } from "@config/config.service";
+import { createBoardLoader } from "@board/board.loader";
+import { BoardService } from "@board/board.service";
 
 @Module({
     imports: [
@@ -52,15 +54,16 @@ import { ConfigService } from "@config/config.service";
         }),
         TypeOrmModule.forRoot(config),
         GraphQLModule.forRootAsync({
-            imports: [PostModule, FileModule],
-            inject: [PostService, FileService],
-            useFactory: (postService: PostService, fileService: FileService) => ({
+            imports: [PostModule, FileModule, BoardModule],
+            inject: [PostService, FileService, BoardService],
+            useFactory: (postService: PostService, fileService: FileService, boardService: BoardService) => ({
                 autoSchemaFile: path.join(process.cwd(), "..", "app", "schema.gql"),
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 context: async (_: { req: Request }): Promise<GraphQLContext> => {
                     return {
                         postLoader: createPostLoader(postService),
                         fileLoader: createFileLoader(fileService),
+                        boardLoader: createBoardLoader(boardService),
                     };
                 },
                 cors: {
