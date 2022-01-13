@@ -2,9 +2,10 @@ import * as _ from "lodash";
 import * as fs from "fs-extra";
 import * as path from "path";
 import * as yaml from "yaml";
+import * as chokidar from "chokidar";
 import { z } from "zod";
 
-import { Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 
 import { API, Config, ConfigFilter } from "@utils/types";
 import { CONFIG_VALIDATION_SCHEMA } from "@root/constants/validation";
@@ -14,32 +15,47 @@ const POSSIBLE_CONFIG_FILENAMES: string[] = [".chanhiverc", "chanhiverc.yml", "c
 
 @Injectable()
 export class ConfigService implements OnModuleInit {
-    private static async tryGetConfigData(): Promise<Config | false> {
+    private static async tryGetConfigData(targetFilePath: string | null): Promise<[Config, string] | false> {
+        const loadFile = async (filePath: string): Promise<[Config, string] | false> => {
+            const content = await fs.readFile(filePath).then(buffer => buffer.toString());
+            switch (path.extname(filePath).trim()) {
+                case ".yml":
+                case ".yaml":
+                    return [yaml.parse(content), filePath];
+
+                case ".json":
+                case "": // .chanhiverc
+                    return [JSON.parse(content), filePath];
+            }
+
+            return false;
+        };
+
+        if (targetFilePath) {
+            return loadFile(targetFilePath);
+        }
+
         for (const fileName of POSSIBLE_CONFIG_FILENAMES) {
             if (!fs.existsSync(fileName)) {
                 continue;
             }
 
-            const content = await fs.readFile(path.join(process.cwd(), fileName)).then(buffer => buffer.toString());
-            switch (path.extname(fileName).trim()) {
-                case ".yml":
-                case ".yaml":
-                    return yaml.parse(content);
-
-                case ".json":
-                case "": // .chanhiverc
-                    return JSON.parse(content);
-            }
+            targetFilePath = path.join(process.cwd(), fileName);
+            return loadFile(targetFilePath);
         }
 
         return false;
     }
 
+    private readonly logger = new Logger(ConfigService.name);
+    private isUpdating = false;
+    private configFileWatcher: chokidar.FSWatcher | null = null;
+    private targetFilePath: string | null = null;
     private _config: Config | null = null;
     private _targetBoardMap: { [key: string]: Config["targets"] } | null = null;
 
     public async onModuleInit() {
-        const config = await ConfigService.tryGetConfigData();
+        const config = await ConfigService.tryGetConfigData(this.targetFilePath);
         if (!config) {
             throw new Error(
                 "Could not locate the configuration file. Tried:\n" +
@@ -48,7 +64,7 @@ export class ConfigService implements OnModuleInit {
         }
 
         try {
-            CONFIG_VALIDATION_SCHEMA.parse(config);
+            CONFIG_VALIDATION_SCHEMA.parse(config[0]);
         } catch (e) {
             if (e instanceof z.ZodError) {
                 const [error] = e.errors;
@@ -58,9 +74,9 @@ export class ConfigService implements OnModuleInit {
             }
         }
 
-        this._config = config;
+        [this._config, this.targetFilePath] = config;
         this._targetBoardMap = {};
-        for (const target of config.targets) {
+        for (const target of this._config.targets) {
             for (const boardId of target.boards) {
                 if (!(boardId in this._targetBoardMap)) {
                     this._targetBoardMap[boardId] = [];
@@ -70,8 +86,31 @@ export class ConfigService implements OnModuleInit {
             }
         }
 
+        if (!this.configFileWatcher) {
+            this.configFileWatcher = chokidar.watch(this.targetFilePath).on("change", this.handleConfigFileChange);
+        }
+
         return this._config;
     }
+
+    private handleConfigFileChange = async () => {
+        if (this.isUpdating) {
+            return;
+        }
+
+        this.isUpdating = true;
+        this.logger.debug("Configuration file change detected. Starting hot-reloading...");
+
+        try {
+            await this.onModuleInit();
+            this.logger.debug("Successfully hot-reloaded newer configuration.");
+        } catch (e) {
+            this.logger.error("Failed to hot-reload newer configuration with error:");
+            this.logger.error((e as Error).message);
+        } finally {
+            this.isUpdating = false;
+        }
+    };
 
     public getArchivePath = async () => {
         if (!this._config) {

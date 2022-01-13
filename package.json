@@ -34,6 +34,7 @@
         "@nestjs/typeorm": "^8.0.2",
         "apollo-server-express": "^3.6.1",
         "bull": "^4.2.0",
+        "chokidar": "^3.5.2",
         "class-transformer": "^0.4.0",
         "class-validator": "^0.13.0",
         "dataloader": "^2.0.0",
