@@ -34,6 +34,16 @@ export class ThreadService implements InvalidationService {
         @InjectRepository(Thread) private readonly threadRepository: Repository<Thread>,
     ) {}
 
+    public async getThread(boardId: string, threadId: number) {
+        return this.threadRepository.findOne({
+            where: {
+                id: threadId,
+                board: {
+                    id: boardId,
+                },
+            },
+        });
+    }
     public async getThreads(board?: Board, count?: number, before?: Date | null) {
         if (!board) {
             let queryBuilder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`", "id");

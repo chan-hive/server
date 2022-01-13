@@ -17,6 +17,14 @@ export class ThreadResolver {
         @Inject(PostService) private readonly postService: PostService,
     ) {}
 
+    @Query(() => Thread)
+    public async thread(
+        @Args("boardId", { type: () => String }) boardId: string,
+        @Args("threadId", { type: () => Int }) threadId: number,
+    ) {
+        return this.threadService.getThread(boardId, threadId);
+    }
+
     @Query(() => [Thread])
     public async threads(
         @Args("count", { type: () => Int }) count: number,
