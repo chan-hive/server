@@ -51,8 +51,8 @@ import { createBoardLoader } from "@board/board.loader";
         }),
         BullModule.forRoot({
             redis: {
-                host: "localhost",
-                port: 9001,
+                host: process.env.CHANHIVE_REDIS_HOST || "localhost",
+                port: process.env.CHANHIVE_REDIS_PORT ? parseInt(process.env.CHANHIVE_REDIS_PORT, 10) : 9001,
             },
         }),
         TypeOrmModule.forRoot(config),
