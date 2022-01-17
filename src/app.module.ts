@@ -60,7 +60,10 @@ import { createBoardLoader } from "@board/board.loader";
             imports: [PostModule, FileModule, BoardModule],
             inject: [PostService, FileService, BoardService],
             useFactory: (postService: PostService, fileService: FileService, boardService: BoardService) => ({
-                autoSchemaFile: path.join(process.cwd(), "..", "app", "schema.gql"),
+                autoSchemaFile:
+                    process.env.NODE_ENV !== "production"
+                        ? path.join(process.cwd(), "..", "app", "schema.gql")
+                        : path.join(process.cwd(), "schema.gql"),
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 context: async (_: { req: Request }): Promise<GraphQLContext> => {
                     return {
