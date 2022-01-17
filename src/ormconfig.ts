@@ -2,10 +2,10 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 const config: Parameters<typeof TypeOrmModule["forRoot"]>[0] = {
     type: "mysql",
-    host: process.env.DB_HOST ? process.env.DB_HOST : "localhost",
-    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 9002,
-    username: process.env.DB_USER ? process.env.DB_USER : "chanhive",
-    password: process.env.DB_PASSWORD ? process.env.DB_PASSWORD : "chanhive",
+    host: process.env.CHANHIVE_DB_HOST ? process.env.CHANHIVE_DB_HOST : "localhost",
+    port: process.env.CHANHIVE_DB_PORT ? parseInt(process.env.CHANHIVE_DB_PORT, 10) : 9002,
+    username: process.env.CHANHIVE_DB_USER ? process.env.CHANHIVE_DB_USER : "chanhive",
+    password: process.env.CHANHIVE_DB_PASSWORD ? process.env.CHANHIVE_DB_PASSWORD : "chanhive",
     database: "chanhive",
     autoLoadEntities: true,
     dropSchema: false,
