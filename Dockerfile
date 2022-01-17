@@ -8,7 +8,7 @@ WORKDIR /home/node
 
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node yarn.lock ./
-RUN --uid=1000 yarn
+RUN yarn
 
 COPY --chown=node:node . .
 
