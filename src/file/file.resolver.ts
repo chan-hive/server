@@ -6,7 +6,7 @@ import { BaseDriver } from "@file/drivers/base.driver";
 
 import { ConfigService } from "@config/config.service";
 
-@Resolver()
+@Resolver(() => File)
 export class FileResolver {
     public constructor(@Inject(ConfigService) private readonly configService: ConfigService) {}
 
