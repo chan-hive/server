@@ -10,11 +10,6 @@ jobs:
     build-and-deploy:
         runs-on: self-hosted
         steps:
-            - name: Activate SSH Agent
-              uses: webfactory/ssh-agent@v0.5.3
-              with:
-                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
             - name: Checkout
               uses: actions/checkout@v2.3.1
               with:
@@ -70,7 +65,7 @@ jobs:
                   IMAGE_TAG: ${{ github.sha }}
                   DOCKER_BUILDKIT: 1
               run: |
-                  docker build -t chanhive/server:$IMAGE_TAG --ssh default .
-                  docker build -t chanhive/server:latest --ssh default .
+                  docker build -t chanhive/server:$IMAGE_TAG .
+                  docker build -t chanhive/server:latest .
                   docker push chanhive/server:$IMAGE_TAG
                   docker push chanhive/server:latest
