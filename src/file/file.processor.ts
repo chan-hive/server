@@ -10,6 +10,7 @@ import { FileService } from "@file/file.service";
 import { File } from "@file/models/file.model";
 import { BaseDriver } from "@file/drivers/base.driver";
 import { LocalDriver } from "@file/drivers/local.driver";
+import { S3Driver } from "@file/drivers/s3.driver";
 
 @Processor("file")
 export class FileProcessor {
@@ -35,6 +36,10 @@ export class FileProcessor {
                 switch (config.driver.type) {
                     case "local":
                         this.driver = new LocalDriver(config.driver);
+                        break;
+
+                    case "s3":
+                        this.driver = new S3Driver(config.driver);
                         break;
 
                     default:

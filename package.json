@@ -33,6 +33,7 @@
         "@nestjs/serve-static": "^2.2.2",
         "@nestjs/typeorm": "^8.0.2",
         "apollo-server-express": "^3.6.1",
+        "aws-sdk": "^2.1058.0",
         "bull": "^4.2.0",
         "chokidar": "^3.5.2",
         "class-transformer": "^0.4.0",

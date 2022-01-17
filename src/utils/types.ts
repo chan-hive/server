@@ -272,7 +272,15 @@ export interface LocalDriverConfig {
     path: string;
 }
 
-export type DriverConfig = LocalDriverConfig;
+export interface S3DriverConfig {
+    type: "s3";
+    keyId: string;
+    accessKey: string;
+    bucketName: string;
+    region: string;
+}
+
+export type DriverConfig = LocalDriverConfig | S3DriverConfig;
 
 export interface Config {
     driver: DriverConfig | null;

@@ -24,7 +24,35 @@
                     "additionalProperties": false
                 },
                 {
-                    "type": "null"
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "s3"
+                            ]
+                        },
+                        "accessKey": {
+                            "type": "string"
+                        },
+                        "keyId": {
+                            "type": "string"
+                        },
+                        "bucketName": {
+                            "type": "string"
+                        },
+                        "region": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "accessKey",
+                        "keyId",
+                        "bucketName",
+                        "region"
+                    ],
+                    "additionalProperties": false
                 }
             ]
         },

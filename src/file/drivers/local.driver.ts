@@ -25,25 +25,19 @@ export class LocalDriver extends BaseDriver {
     }
 
     public async push(file: File): Promise<void> {
-        const fileName = `${file.uploadedTimestamp}${file.extension}`;
-        const thumbnailFileName = `${file.uploadedTimestamp}s.jpg`;
-        const urlPrefix = `https://i.4cdn.org/${file.boardId}/`;
+        const fileBuffer = await BaseDriver.downloadFile(file);
+        const thumbnailBuffer = await BaseDriver.downloadFile(file, true);
 
-        const fileBuffer = await BaseDriver.downloadBuffer(`${urlPrefix}${fileName}`);
-        const thumbnailBuffer = await BaseDriver.downloadBuffer(`${urlPrefix}${thumbnailFileName}`);
-
-        await fs.writeFile(path.join(this.config.path, fileName), fileBuffer);
-        await fs.writeFile(path.join(this.config.path, thumbnailFileName), thumbnailBuffer);
+        await fs.writeFile(path.join(this.config.path, BaseDriver.getFileName(file)), fileBuffer);
+        await fs.writeFile(path.join(this.config.path, BaseDriver.getFileName(file, true)), thumbnailBuffer);
     }
-
     public async pull(file: File, thumbnail?: boolean): Promise<string | Buffer> {
-        const fileName = `${file.uploadedTimestamp}${thumbnail ? "s" : ""}${file.extension}`;
-        return fs.readFile(path.join(this.config.path, fileName));
+        return fs.readFile(path.join(this.config.path, BaseDriver.getFileName(file, thumbnail)));
     }
-
     public async exists(file: File): Promise<boolean> {
-        const fileName = `${file.uploadedTimestamp}${file.extension}`;
-
-        return fs.existsSync(path.join(this.config.path, fileName));
+        return (
+            fs.existsSync(path.join(this.config.path, BaseDriver.getFileName(file))) &&
+            fs.existsSync(path.join(this.config.path, BaseDriver.getFileName(file, true)))
+        );
     }
 }
