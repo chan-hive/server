@@ -69,6 +69,9 @@ export class ThreadService implements InvalidationService {
             },
         });
     }
+    public async getThreadCount() {
+        return this.threadRepository.count();
+    }
 
     private getThreadIds(board?: Board) {
         let builder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`");
