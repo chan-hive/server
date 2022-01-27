@@ -10,6 +10,11 @@ import { ConfigService } from "@config/config.service";
 export class FileResolver {
     public constructor(@Inject(ConfigService) private readonly configService: ConfigService) {}
 
+    @ResolveField(() => Boolean)
+    public async isImage(@Root() root: File) {
+        return !root.extension.endsWith("webm");
+    }
+
     @ResolveField(() => String)
     public async url(@Root() root: File) {
         const config = this.configService.getConfig();
