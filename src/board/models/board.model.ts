@@ -16,6 +16,10 @@ export class Board {
     @Column({ type: "text" })
     public title!: string;
 
+    @Field(() => Boolean)
+    @Column({ type: "bool", default: false, nullable: false })
+    public isWorkSafe!: boolean;
+
     //
     // Relation (One-to-Many) - Thread => Board
     //
