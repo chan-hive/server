@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import { Repository } from "typeorm";
 
-import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
+import { forwardRef, Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 
 import { ConfigService } from "@config/config.service";
@@ -12,11 +12,13 @@ import { Board } from "@board/models/board.model";
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
 import { getEntityByIds } from "@utils/getEntityByIds";
+import { ThreadService } from "@thread/thread.service";
 
 @Injectable()
 export class BoardService implements InvalidationService, OnModuleInit {
     public constructor(
         @Inject(ConfigService) private readonly configService: ConfigService,
+        @Inject(forwardRef(() => ThreadService)) private readonly threadService: ThreadService,
         @InjectRepository(Board) private readonly boardRepository: Repository<Board>,
     ) {}
 
@@ -32,7 +34,9 @@ export class BoardService implements InvalidationService, OnModuleInit {
         });
     }
     public async getBoards() {
-        return this.boardRepository.find();
+        const usedBoardIds = await this.threadService.getUsedBoardIds();
+
+        return this.boardRepository.findByIds(usedBoardIds);
     }
     public async getBoardByIds(keys: ReadonlyArray<string>) {
         return getEntityByIds(this.boardRepository, [...keys]);

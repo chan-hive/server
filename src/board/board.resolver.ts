@@ -1,5 +1,5 @@
 import { Inject } from "@nestjs/common";
-import { Args, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
+import { Args, Int, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 
 import { BoardService } from "@board/board.service";
 import { Board } from "@board/models/board.model";
@@ -27,5 +27,10 @@ export class BoardResolver {
     @ResolveField(() => [Thread])
     public threads(@Root() board: Board) {
         return this.threadService.getThreads(board);
+    }
+
+    @ResolveField(() => Int)
+    public threadCount(@Root() board: Board) {
+        return this.threadService.getThreadCount(board);
     }
 }

@@ -69,7 +69,15 @@ export class ThreadService implements InvalidationService {
             },
         });
     }
-    public async getThreadCount() {
+    public async getThreadCount(board?: Board) {
+        if (board) {
+            return this.threadRepository
+                .createQueryBuilder("t")
+                .select()
+                .where("`t`.`boardId` = :boardId", { boardId: board?.id })
+                .getCount();
+        }
+
         return this.threadRepository.count();
     }
 
@@ -159,5 +167,14 @@ export class ThreadService implements InvalidationService {
 
         await this.fileService.bulkDownload(allFiles);
         this.logger.debug(`Detected new ${allFiles.length} files (${totalSize}).`);
+    }
+
+    public async getUsedBoardIds() {
+        const data = await this.threadRepository
+            .createQueryBuilder("t")
+            .select("`t`.`boardId`", "id")
+            .getRawMany<{ id: string }>();
+
+        return _.chain(data).map("id").uniq().value();
     }
 }

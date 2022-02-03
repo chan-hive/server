@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { ThreadModule } from "@thread/thread.module";
@@ -9,7 +9,7 @@ import { BoardResolver } from "@board/board.resolver";
 import { Board } from "@board/models/board.model";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Board]), ThreadModule],
+    imports: [TypeOrmModule.forFeature([Board]), forwardRef(() => ThreadModule)],
     providers: [BoardService, BoardResolver],
     exports: [BoardService],
 })
