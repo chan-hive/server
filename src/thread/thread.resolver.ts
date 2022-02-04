@@ -32,10 +32,11 @@ export class ThreadResolver {
 
     @Query(() => [Thread])
     public async threads(
+        @Args("boardId", { type: () => String, nullable: true }) boardId: Board["id"] | null,
         @Args("count", { type: () => Int }) count: number,
         @Args("before", { type: () => Date, nullable: true }) before?: Date | null,
     ) {
-        return this.threadService.getThreads(undefined, count, before);
+        return this.threadService.getThreads(boardId, count, before);
     }
 
     @ResolveField(() => Int)

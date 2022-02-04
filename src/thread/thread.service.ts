@@ -44,7 +44,7 @@ export class ThreadService implements InvalidationService {
             },
         });
     }
-    public async getThreads(board?: Board, count?: number, before?: Date | null) {
+    public async getThreads(board?: Board | Board["id"] | null, count?: number, before?: Date | null) {
         if (!board) {
             let queryBuilder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`", "id");
             if (before) {
@@ -60,6 +60,14 @@ export class ThreadService implements InvalidationService {
                 .then(rows => rows.map(row => row.id));
 
             return getEntityByIds(this.threadRepository, ids);
+        }
+
+        if (typeof board === "string") {
+            const boardId = board;
+            board = await this.boardService.getBoard(board);
+            if (!board) {
+                throw new Error(`There's no such board: /${boardId}/`);
+            }
         }
 
         return this.threadRepository.findByIds(board.threadIds, {
