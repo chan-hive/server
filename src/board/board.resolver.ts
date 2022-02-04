@@ -25,12 +25,19 @@ export class BoardResolver {
     }
 
     @ResolveField(() => [Thread])
-    public threads(@Root() board: Board) {
-        return this.threadService.getThreads(board);
+    public threads(@Root() board: Board, @Args("count", { type: () => Int, nullable: true }) count: number) {
+        return this.threadService.getThreads(board, count);
     }
 
     @ResolveField(() => Int)
     public threadCount(@Root() board: Board) {
         return this.threadService.getThreadCount(board);
+    }
+
+    @ResolveField(() => Thread, { nullable: true })
+    public async latestThread(@Root() board: Board) {
+        const threads = await this.threadService.getThreads(board, 1);
+
+        return threads[0];
     }
 }
