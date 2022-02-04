@@ -18,8 +18,8 @@ export class ThreadResolver {
     ) {}
 
     @Query(() => Int)
-    public async threadCount() {
-        return this.threadService.getThreadCount();
+    public async threadCount(@Args("boardId", { type: () => String, nullable: true }) boardId?: string | null) {
+        return this.threadService.getThreadCount(boardId);
     }
 
     @Query(() => Thread)

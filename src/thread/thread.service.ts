@@ -74,12 +74,12 @@ export class ThreadService implements InvalidationService {
 
         return getEntityByIds(this.threadRepository, ids);
     }
-    public async getThreadCount(board?: Board) {
+    public async getThreadCount(board?: Board | string | null | undefined) {
         if (board) {
             return this.threadRepository
                 .createQueryBuilder("t")
                 .select()
-                .where("`t`.`boardId` = :boardId", { boardId: board?.id })
+                .where("`t`.`boardId` = :boardId", { boardId: typeof board === "string" ? board : board.id })
                 .getCount();
         }
 
