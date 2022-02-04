@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import { Repository } from "typeorm";
 import * as fileSize from "filesize";
+import * as moment from "moment";
 
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -19,7 +20,6 @@ import { InvalidationService } from "@common/invalidation.service";
 
 import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
-import * as moment from "moment";
 import { getEntityByIds } from "@utils/getEntityByIds";
 
 @Injectable()
@@ -45,23 +45,6 @@ export class ThreadService implements InvalidationService {
         });
     }
     public async getThreads(board?: Board | Board["id"] | null, count?: number, before?: Date | null) {
-        if (!board) {
-            let queryBuilder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`", "id");
-            if (before) {
-                queryBuilder = queryBuilder.where("`t`.`createdAt` < :before", {
-                    before: moment(before).format("YYYY-MM-DD HH:mm:ss"),
-                });
-            }
-
-            const ids = await queryBuilder
-                .take(count)
-                .orderBy("`t`.`createdAt`", "DESC")
-                .getRawMany<{ id: number }>()
-                .then(rows => rows.map(row => row.id));
-
-            return getEntityByIds(this.threadRepository, ids);
-        }
-
         if (typeof board === "string") {
             const boardId = board;
             board = await this.boardService.getBoard(board);
@@ -70,12 +53,26 @@ export class ThreadService implements InvalidationService {
             }
         }
 
-        return this.threadRepository.findByIds(board.threadIds, {
-            take: count,
-            order: {
-                id: "DESC",
-            },
-        });
+        let queryBuilder = this.threadRepository.createQueryBuilder("t").select("`t`.`id`", "id").where("1 = 1");
+        if (before) {
+            queryBuilder = queryBuilder.andWhere("`t`.`createdAt` < :before", {
+                before: moment(before).format("YYYY-MM-DD HH:mm:ss"),
+            });
+        }
+
+        if (board) {
+            queryBuilder = queryBuilder.andWhere("`t`.`boardId` = :boardId", {
+                boardId: board.id,
+            });
+        }
+
+        const ids = await queryBuilder
+            .take(count)
+            .orderBy("`t`.`createdAt`", "DESC")
+            .getRawMany<{ id: number }>()
+            .then(rows => rows.map(row => row.id));
+
+        return getEntityByIds(this.threadRepository, ids);
     }
     public async getThreadCount(board?: Board) {
         if (board) {
