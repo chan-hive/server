@@ -1,6 +1,8 @@
 import { Column, Entity, ManyToOne, PrimaryColumn, RelationId } from "typeorm";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 
+import { PostContentRow } from "@post/models/content-row.model";
+
 import { Thread } from "@thread/models/thread.model";
 import { File } from "@file/models/file.model";
 
@@ -19,9 +21,13 @@ export class Post {
     @Column({ type: "text", nullable: true })
     public title?: string;
 
-    @Field(() => String, { nullable: true })
-    @Column({ type: "text", nullable: true })
-    public content?: string;
+    @Field(() => [PostContentRow], { name: "content" })
+    @Column({ type: "text", nullable: true, name: "content" })
+    public content!: string | null;
+
+    @Field(() => String, { nullable: true, name: "rawContent" })
+    @Column({ type: "text", nullable: true, name: "rawContent" })
+    public rawContent?: string;
 
     @Field(() => Boolean)
     @Column({ type: "boolean" })
