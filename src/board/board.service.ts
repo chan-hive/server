@@ -77,6 +77,7 @@ export class BoardService implements InvalidationService, OnModuleInit {
             newBoard.id = board.board;
             newBoard.title = board.title;
             newBoard.isWorkSafe = board.ws_board === 1;
+            newBoard.description = decode(board.meta_description);
 
             newBoards.push(newBoard);
         }
