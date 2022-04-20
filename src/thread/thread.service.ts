@@ -96,7 +96,7 @@ export class ThreadService implements InvalidationService {
     }
 
     public async onInvalidate() {
-        const boards = await this.boardService.getBoards();
+        const boards = await this.boardService.getBoards(true);
         const targetBoardMap = this.configService.getTargetBoardMap();
         let newEntities: Thread[] = [];
         const oldThreadIds = new Set(await this.getThreadIds());
