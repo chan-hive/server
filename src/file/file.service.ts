@@ -139,4 +139,15 @@ export class FileService {
             },
         );
     }
+
+    public async uploadFileMimeType(file: File, mime: string) {
+        await this.fileRepository.update(
+            {
+                id: file.id,
+            },
+            {
+                mime,
+            },
+        );
+    }
 }

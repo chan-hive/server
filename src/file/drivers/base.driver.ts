@@ -22,6 +22,6 @@ export abstract class BaseDriver {
 
     public abstract initialize(): Promise<void>;
     public abstract exists(file: File): Promise<boolean>;
-    public abstract push(file: File): Promise<void>;
+    public abstract push(file: File, mediaBuffer: Buffer, thumbnailBuffer: Buffer): Promise<void>;
     public abstract pull(file: File, thumbnail?: boolean): Promise<string | Buffer>;
 }

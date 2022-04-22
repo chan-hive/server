@@ -13,6 +13,10 @@ export class File {
     public id!: number;
 
     @Field(() => String)
+    @Column({ type: "varchar", length: 255, default: "application/octet-stream" })
+    public mime!: string;
+
+    @Field(() => String)
     @Column({ type: "text" })
     public name!: string;
 

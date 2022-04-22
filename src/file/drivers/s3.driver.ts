@@ -104,12 +104,7 @@ export class S3Driver extends BaseDriver {
 
         return buffer.Body;
     }
-    public async push(file: File): Promise<void> {
-        const [mediaBuffer, thumbnailBuffer] = await Promise.all([
-            BaseDriver.downloadFile(file),
-            BaseDriver.downloadFile(file, true),
-        ]);
-
+    public async push(file: File, mediaBuffer: Buffer, thumbnailBuffer: Buffer): Promise<void> {
         await Promise.all([
             this.uploadBuffer(BaseDriver.getFileName(file), mediaBuffer),
             this.uploadBuffer(BaseDriver.getFileName(file, true), thumbnailBuffer),

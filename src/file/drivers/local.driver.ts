@@ -24,11 +24,8 @@ export class LocalDriver extends BaseDriver {
         await fs.ensureDir(this.config.path);
     }
 
-    public async push(file: File): Promise<void> {
-        const fileBuffer = await BaseDriver.downloadFile(file);
-        const thumbnailBuffer = await BaseDriver.downloadFile(file, true);
-
-        await fs.writeFile(path.join(this.config.path, BaseDriver.getFileName(file)), fileBuffer);
+    public async push(file: File, mediaBuffer: Buffer, thumbnailBuffer: Buffer): Promise<void> {
+        await fs.writeFile(path.join(this.config.path, BaseDriver.getFileName(file)), mediaBuffer);
         await fs.writeFile(path.join(this.config.path, BaseDriver.getFileName(file, true)), thumbnailBuffer);
     }
     public async pull(file: File, thumbnail?: boolean): Promise<string | Buffer> {
