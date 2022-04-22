@@ -54,4 +54,9 @@ export class FileResolver {
                 throw new Error("Cannot get url of file with unknown driver: " + (config.driver as any).type);
         }
     }
+
+    @ResolveField(() => Boolean)
+    public isVideo(@Root() root: File) {
+        return root.mime.startsWith("video/");
+    }
 }
