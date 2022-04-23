@@ -114,7 +114,7 @@ export class ThreadService implements InvalidationService {
                 for (const target of targets) {
                     for (const filter of target.filters) {
                         if (!this.configService.checkFilter(thread, filter)) {
-                            break;
+                            continue;
                         }
 
                         passedThreads.push(thread);
