@@ -154,7 +154,11 @@ export class FileService {
         );
     }
 
-    public async getMetadata(root: File): Promise<string | undefined | null> {
+    public async getMetadata(root: File, refresh: boolean): Promise<string | undefined | null> {
+        if (!refresh) {
+            return root.metadata;
+        }
+
         let targetFile = await this.fileRepository.findOne({
             where: {
                 id: root.id,
@@ -165,11 +169,9 @@ export class FileService {
             throw new Error("Tried to read not existing file.");
         }
 
-        if (!targetFile.metadata && !targetFile.metadataChecked) {
-            targetFile.metadata = await this.parseMetadata(targetFile);
-            targetFile.metadataChecked = true;
-            targetFile = await this.fileRepository.save(targetFile);
-        }
+        targetFile.metadata = await this.parseMetadata(targetFile);
+        targetFile.metadataChecked = true;
+        targetFile = await this.fileRepository.save(targetFile);
 
         return targetFile.metadata;
     }
