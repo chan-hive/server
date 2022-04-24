@@ -9,8 +9,6 @@ import { FileService } from "@file/file.service";
 
 import { File } from "@file/models/file.model";
 import { BaseDriver } from "@file/drivers/base.driver";
-import { LocalDriver } from "@file/drivers/local.driver";
-import { S3Driver } from "@file/drivers/s3.driver";
 
 @Processor("file")
 export class FileProcessor {
@@ -28,25 +26,7 @@ export class FileProcessor {
         try {
             const { data: file } = job;
             if (!this.driver) {
-                const config = this.configService.getConfig();
-                if (!config || !config.driver) {
-                    return false;
-                }
-
-                switch (config.driver.type) {
-                    case "local":
-                        this.driver = new LocalDriver(config.driver);
-                        break;
-
-                    case "s3":
-                        this.driver = new S3Driver(config.driver);
-                        break;
-
-                    default:
-                        throw new Error("Failed");
-                }
-
-                await this.driver.initialize();
+                this.driver = await this.configService.getDriver();
             }
 
             const isExists = await this.driver.exists(file);

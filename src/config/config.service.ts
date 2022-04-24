@@ -7,8 +7,13 @@ import { z } from "zod";
 
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 
+import { LocalDriver } from "@file/drivers/local.driver";
+import { S3Driver } from "@file/drivers/s3.driver";
+import { BaseDriver } from "@file/drivers/base.driver";
+
+import { CONFIG_VALIDATION_SCHEMA } from "@constants/validation";
+
 import { API, Config, ConfigFilter } from "@utils/types";
-import { CONFIG_VALIDATION_SCHEMA } from "@root/constants/validation";
 import { searchText } from "@utils/searchText";
 
 const POSSIBLE_CONFIG_FILENAMES: string[] = [".chanhiverc", "chanhiverc.yml", "chanhiverc.yaml", "chanhiverc.json"];
@@ -140,6 +145,29 @@ export class ConfigService implements OnModuleInit {
         }
 
         return _.cloneDeep(this._targetBoardMap);
+    }
+    public async getDriver(): Promise<BaseDriver> {
+        const config = this.getConfig();
+        if (!config || !config.driver) {
+            throw new Error(`Driver configuration cannot be null`);
+        }
+
+        let driver: BaseDriver;
+        switch (config.driver.type) {
+            case "local":
+                driver = new LocalDriver(config.driver);
+                break;
+
+            case "s3":
+                driver = new S3Driver(config.driver);
+                break;
+
+            default:
+                throw new Error(`Unknown driver type: ${(config.driver as any).type}`);
+        }
+
+        await driver.initialize();
+        return driver;
     }
 
     public checkFilter(thread: API.Catalog.Thread, filter: ConfigFilter) {

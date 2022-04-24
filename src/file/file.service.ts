@@ -2,16 +2,18 @@ import * as _ from "lodash";
 import { In, Repository } from "typeorm";
 import { Queue } from "bull";
 
-import { Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InjectQueue } from "@nestjs/bull";
 
 import { File } from "@file/models/file.model";
 import { Board } from "@board/models/board.model";
+import { Thread } from "@thread/models/thread.model";
+
+import { ConfigService } from "@config/config.service";
 
 import { getEntityByIds } from "@utils/getEntityByIds";
 import { API } from "@utils/types";
-import { Thread } from "@root/thread/models/thread.model";
 
 @Injectable()
 export class FileService {
@@ -19,6 +21,7 @@ export class FileService {
 
     public constructor(
         @InjectRepository(File) private readonly fileRepository: Repository<File>,
+        @Inject(ConfigService) private readonly configService: ConfigService,
         @InjectQueue("file") private fileQueue: Queue,
     ) {}
 
@@ -149,5 +152,68 @@ export class FileService {
                 mime,
             },
         );
+    }
+
+    public async getMetadata(root: File): Promise<string | undefined | null> {
+        let targetFile = await this.fileRepository.findOne({
+            where: {
+                id: root.id,
+            },
+        });
+
+        if (!targetFile) {
+            throw new Error("Tried to read not existing file.");
+        }
+
+        if (!targetFile.metadata && !targetFile.metadataChecked) {
+            targetFile.metadata = await this.parseMetadata(targetFile);
+            targetFile.metadataChecked = true;
+            targetFile = await this.fileRepository.save(targetFile);
+        }
+
+        return targetFile.metadata;
+    }
+
+    private async parseMetadata(file: File): Promise<string | null> {
+        const driver = await this.configService.getDriver();
+        const data = await driver.pull(file);
+        if (typeof data === "string") {
+            return null;
+        }
+
+        const buffer = data;
+        let element, i, size, title;
+        function readInt() {
+            let n = buffer[i++];
+            let len = 0;
+            while (n < 0x80 >> len) {
+                len++;
+            }
+
+            n ^= 0x80 >> len;
+            while (len-- && i < buffer.length) {
+                n = (n << 8) ^ buffer[i++];
+            }
+
+            return n;
+        }
+
+        i = 0;
+        while (i < data.length) {
+            element = readInt();
+            size = readInt();
+            if (element === 0x3ba9) {
+                title = "";
+                while (size-- && i < data.length) {
+                    title += String.fromCharCode(data[i++]);
+                }
+
+                return decodeURIComponent(escape(title));
+            } else if (element !== 0x8538067 && element !== 0x549a966) {
+                i += size;
+            }
+        }
+
+        return null;
     }
 }

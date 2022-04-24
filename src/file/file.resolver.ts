@@ -1,14 +1,28 @@
 import { Inject } from "@nestjs/common";
-import { ResolveField, Resolver, Root } from "@nestjs/graphql";
+import { Args, Int, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 
 import { File } from "@file/models/file.model";
+import { FileService } from "@file/file.service";
 import { BaseDriver } from "@file/drivers/base.driver";
 
 import { ConfigService } from "@config/config.service";
 
 @Resolver(() => File)
 export class FileResolver {
-    public constructor(@Inject(ConfigService) private readonly configService: ConfigService) {}
+    public constructor(
+        @Inject(ConfigService) private readonly configService: ConfigService,
+        @Inject(FileService) private readonly fileService: FileService,
+    ) {}
+
+    @Query(() => File, { nullable: true })
+    public async file(@Args("id", { type: () => Int }) id: File["id"]) {
+        return this.fileService.getFile(id);
+    }
+
+    @ResolveField(() => String)
+    public async metadata(@Root() root: File) {
+        return this.fileService.getMetadata(root);
+    }
 
     @ResolveField(() => String)
     public async url(@Root() root: File) {

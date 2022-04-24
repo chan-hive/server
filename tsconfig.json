@@ -27,7 +27,8 @@
             "@common/*": ["./src/common/*"],
             "@file/*": ["./src/file/*"],
             "@config/*": ["./src/config/*"],
-            "@utils/*": ["./src/utils/*"]
+            "@utils/*": ["./src/utils/*"],
+            "@constants/*": ["./src/constants/*"]
         }
     }
 }

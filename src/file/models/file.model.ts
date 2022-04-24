@@ -56,6 +56,14 @@ export class File {
     @Column({ type: "boolean" })
     public isArchived!: boolean;
 
+    @Field(() => String, { nullable: true })
+    @Column({ type: "text", nullable: true })
+    public metadata?: string | null;
+
+    @Field(() => String)
+    @Column({ type: "boolean", default: false })
+    public metadataChecked!: boolean;
+
     //
     // Relation (One-to-Many) - Post => File
     //
