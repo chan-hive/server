@@ -182,7 +182,7 @@ export class FileService {
                 id: file.id,
             },
             {
-                metadata: await this.parseMetadata(buffer),
+                metadata: file.mime === "video/webm" ? await this.parseMetadata(buffer) : null,
                 metadataChecked: true,
             },
         );

@@ -54,7 +54,9 @@ export class FileProcessor {
 
             await this.driver.push(file, mediaBuffer, thumbnailBuffer);
             await this.fileService.markFileAsArchived(file);
-            await this.fileService.uploadFileMimeType(file, fileType?.mime || "application/octet-stream");
+
+            file.mime = fileType?.mime || "application/octet-stream";
+            await this.fileService.uploadFileMimeType(file, file.mime);
             await this.fileService.updateMetadata(file, mediaBuffer);
 
             this.logger.debug(
