@@ -55,6 +55,7 @@ export class FileProcessor {
             await this.driver.push(file, mediaBuffer, thumbnailBuffer);
             await this.fileService.markFileAsArchived(file);
             await this.fileService.uploadFileMimeType(file, fileType?.mime || "application/octet-stream");
+            await this.fileService.updateMetadata(file, mediaBuffer);
 
             this.logger.debug(
                 `Successfully pushed a file (${file.name}${file.extension}, ${file.md5}, ${fileSize(file.size)}).`,

@@ -174,38 +174,56 @@ export class FileService {
         return targetFile.metadata;
     }
 
-    private async parseMetadata(file: File): Promise<string | null> {
-        const driver = await this.configService.getDriver();
-        const data = await driver.pull(file);
-        if (typeof data === "string") {
-            return null;
+    public async updateMetadata(file: File, buffer: Buffer) {
+        await this.fileRepository.update(
+            {
+                id: file.id,
+            },
+            {
+                metadata: await this.parseMetadata(buffer),
+                metadataChecked: true,
+            },
+        );
+    }
+
+    private async parseMetadata(file: File | Buffer): Promise<string | null> {
+        let targetBuffer: Buffer;
+        if (!Buffer.isBuffer(file)) {
+            const driver = await this.configService.getDriver();
+            const data = await driver.pull(file);
+            if (typeof data === "string") {
+                return null;
+            }
+
+            targetBuffer = data;
+        } else {
+            targetBuffer = file;
         }
 
-        const buffer = data;
         let element, i, size, title;
         function readInt() {
-            let n = buffer[i++];
+            let n = targetBuffer[i++];
             let len = 0;
             while (n < 0x80 >> len) {
                 len++;
             }
 
             n ^= 0x80 >> len;
-            while (len-- && i < buffer.length) {
-                n = (n << 8) ^ buffer[i++];
+            while (len-- && i < targetBuffer.length) {
+                n = (n << 8) ^ targetBuffer[i++];
             }
 
             return n;
         }
 
         i = 0;
-        while (i < data.length) {
+        while (i < targetBuffer.length) {
             element = readInt();
             size = readInt();
             if (element === 0x3ba9) {
                 title = "";
-                while (size-- && i < data.length) {
-                    title += String.fromCharCode(data[i++]);
+                while (size-- && i < targetBuffer.length) {
+                    title += String.fromCharCode(targetBuffer[i++]);
                 }
 
                 return decodeURIComponent(escape(title));
