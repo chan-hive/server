@@ -22,7 +22,7 @@ export class FileResolver {
     @ResolveField(() => String)
     public async metadata(
         @Root() root: File,
-        @Args("refresh", { type: () => Boolean, defaultValue: true }) refresh = true,
+        @Args("refresh", { type: () => Boolean, defaultValue: false }) refresh = false,
     ) {
         return this.fileService.getMetadata(root, refresh);
     }
