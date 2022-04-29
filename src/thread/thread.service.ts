@@ -159,7 +159,7 @@ export class ThreadService implements InvalidationService {
         const allFiles = _.chain(newPosts)
             .map(p => p.file)
             .filter<File>((p: File | null): p is File => Boolean(p))
-            .filter(p => p.isArchived === false)
+            .filter(p => !p.isArchived)
             .uniqBy(f => f.md5)
             .value();
 

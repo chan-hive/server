@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { FileService } from "@file/file.service";
 import { FileResolver } from "@file/file.resolver";
 import { FileProcessor } from "@file/file.processor";
+import { FileController } from "@file/file.controller";
 
 import { File } from "@file/models/file.model";
 
@@ -17,5 +18,6 @@ import { File } from "@file/models/file.model";
     ],
     providers: [FileService, FileResolver, FileProcessor],
     exports: [FileService],
+    controllers: [FileController],
 })
 export class FileModule {}

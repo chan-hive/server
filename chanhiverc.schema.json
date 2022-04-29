@@ -56,6 +56,44 @@
                 }
             ]
         },
+        "plugins": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "sqs"
+                        ]
+                    },
+                    "concurrency": {
+                        "type": "number"
+                    },
+                    "accessKey": {
+                        "type": "string"
+                    },
+                    "keyId": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "queueUrl": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "concurrency",
+                    "accessKey",
+                    "keyId",
+                    "region",
+                    "queueUrl"
+                ],
+                "additionalProperties": false
+            }
+        },
         "targets": {
             "type": "array",
             "items": {
@@ -116,12 +154,16 @@
                 "number",
                 "string"
             ]
+        },
+        "serverUrl": {
+            "type": "string"
         }
     },
     "required": [
         "driver",
         "targets",
-        "monitorInterval"
+        "monitorInterval",
+        "serverUrl"
     ],
     "additionalProperties": false
 }

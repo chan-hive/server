@@ -110,4 +110,16 @@ export class S3Driver extends BaseDriver {
             this.uploadBuffer(BaseDriver.getFileName(file, true), thumbnailBuffer),
         ]);
     }
+    public async remove(file: File, thumbnail = false): Promise<void> {
+        await this.s3
+            .deleteObject({
+                Key: thumbnail ? `${file.uploadedTimestamp}s.jpg` : file.path,
+                Bucket: this.config.bucketName,
+            })
+            .promise();
+    }
+    public async update(file: File, mediaBuffer: Buffer): Promise<void> {
+        await this.remove(file);
+        await this.uploadBuffer(file.path, mediaBuffer);
+    }
 }

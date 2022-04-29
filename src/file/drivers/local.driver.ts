@@ -37,4 +37,11 @@ export class LocalDriver extends BaseDriver {
             fs.existsSync(path.join(this.config.path, BaseDriver.getFileName(file, true)))
         );
     }
+    public async remove(file: File, thumbnail = false): Promise<void> {
+        await fs.unlink(BaseDriver.getFileName(file, thumbnail));
+    }
+    public async update(file: File, mediaBuffer: Buffer): Promise<void> {
+        await this.remove(file);
+        await fs.writeFile(file.path, mediaBuffer);
+    }
 }

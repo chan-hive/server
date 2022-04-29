@@ -2,6 +2,7 @@
 import type { createPostLoader } from "@post/post.loader";
 import type { createFileLoader } from "@file/file.loader";
 import type { createBoardLoader } from "@board/board.loader";
+import { SQSPluginConfig } from "@file/plugins/sqs.plugin";
 
 export namespace API {
     export namespace Boards {
@@ -281,10 +282,13 @@ export interface S3DriverConfig {
 }
 
 export type DriverConfig = LocalDriverConfig | S3DriverConfig;
+export type PluginConfig = SQSPluginConfig;
 
 export interface Config {
-    driver: DriverConfig | null;
+    driver: DriverConfig;
+    plugins: PluginConfig[] | null | undefined;
     targets: ConfigTarget[];
+    serverUrl: string;
     monitorInterval: string | number;
 }
 

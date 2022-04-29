@@ -33,7 +33,7 @@ import { createBoardLoader } from "@board/board.loader";
     imports: [
         ScheduleModule.forRoot(),
         ServeStaticModule.forRootAsync({
-            imports: [ConfigModule],
+            imports: [],
             inject: [ConfigService],
             useFactory: async (configService: ConfigService) => {
                 const archivePath = await configService.getArchivePath();

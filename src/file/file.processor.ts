@@ -9,6 +9,7 @@ import { FileService } from "@file/file.service";
 
 import { File } from "@file/models/file.model";
 import { BaseDriver } from "@file/drivers/base.driver";
+import { BasePlugin } from "@file/plugins/base.plugin";
 
 @Processor("file")
 export class FileProcessor {
@@ -20,20 +21,29 @@ export class FileProcessor {
     ) {}
 
     private driver: BaseDriver | null = null;
+    private plugins: BasePlugin[] = [];
+
+    private async initialize() {
+        if (!this.driver) {
+            this.driver = await this.configService.getDriver();
+            this.plugins = await this.configService.getPlugins();
+        }
+
+        return {
+            driver: this.driver,
+            plugins: [...this.plugins],
+        };
+    }
 
     @Process("download")
     public async download(job: Job<File>) {
+        const { driver, plugins } = await this.initialize();
+
         try {
             const { data: file } = job;
-            if (!this.driver) {
-                this.driver = await this.configService.getDriver();
-            }
-
-            const isExists = await this.driver.exists(file);
+            const isExists = await driver.exists(file);
             if (isExists) {
-                if (!file.isArchived) {
-                    await this.fileService.markFileAsArchived(file);
-                }
+                await this.fileService!.markFileAsArchived(file);
 
                 this.logger.debug(
                     `Target file (${file.name}${file.extension}, ${file.md5}, ${fileSize(
@@ -52,12 +62,16 @@ export class FileProcessor {
             const { fileTypeFromBuffer } = await (eval('import("file-type")') as Promise<typeof import("file-type")>);
             const fileType = await fileTypeFromBuffer(mediaBuffer);
 
-            await this.driver.push(file, mediaBuffer, thumbnailBuffer);
+            await driver.push(file, mediaBuffer, thumbnailBuffer);
             await this.fileService.markFileAsArchived(file);
 
             file.mime = fileType?.mime || "application/octet-stream";
             await this.fileService.uploadFileMimeType(file, file.mime);
             await this.fileService.updateMetadata(file, mediaBuffer);
+
+            for (const plugin of plugins) {
+                await plugin.afterPush(file, mediaBuffer, thumbnailBuffer);
+            }
 
             this.logger.debug(
                 `Successfully pushed a file (${file.name}${file.extension}, ${file.md5}, ${fileSize(file.size)}).`,

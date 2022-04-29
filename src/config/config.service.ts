@@ -3,6 +3,7 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import * as yaml from "yaml";
 import * as chokidar from "chokidar";
+import * as ngrok from "ngrok";
 import { z } from "zod";
 
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
@@ -15,11 +16,15 @@ import { CONFIG_VALIDATION_SCHEMA } from "@constants/validation";
 
 import { API, Config, ConfigFilter } from "@utils/types";
 import { searchText } from "@utils/searchText";
+import { BasePlugin } from "@file/plugins/base.plugin";
+import { SQSPlugin } from "@file/plugins/sqs.plugin";
 
 const POSSIBLE_CONFIG_FILENAMES: string[] = [".chanhiverc", "chanhiverc.yml", "chanhiverc.yaml", "chanhiverc.json"];
 
 @Injectable()
 export class ConfigService implements OnModuleInit {
+    private devServerUrl: string | null = null;
+
     private static async tryGetConfigData(targetFilePath: string | null): Promise<[Config, string] | false> {
         const loadFile = async (filePath: string): Promise<[Config, string] | false> => {
             const content = await fs.readFile(filePath).then(buffer => buffer.toString());
@@ -95,6 +100,23 @@ export class ConfigService implements OnModuleInit {
             this.configFileWatcher = chokidar.watch(this.targetFilePath).on("change", this.handleConfigFileChange);
         }
 
+        if (process.env.NODE_ENV !== "production" && process.env.NGROK_AUTH_TOKEN) {
+            if (!this.devServerUrl) {
+                this.devServerUrl = await ngrok.connect({
+                    proto: "http",
+                    addr: 9000,
+                    authtoken: process.env.NGROK_AUTH_TOKEN,
+                });
+
+                this.logger.log(`Ngrok successfully initialized with given url: ${this.devServerUrl}`);
+            }
+
+            this._config = {
+                ...this._config,
+                serverUrl: this.devServerUrl,
+            };
+        }
+
         return this._config;
     }
 
@@ -145,6 +167,25 @@ export class ConfigService implements OnModuleInit {
         }
 
         return _.cloneDeep(this._targetBoardMap);
+    }
+    public async getPlugins(): Promise<BasePlugin[]> {
+        const config = this.getConfig();
+        if (!config || !config.plugins) {
+            return [];
+        }
+
+        const targetPlugins = config.plugins.map(plugin => {
+            switch (plugin.type) {
+                case "sqs":
+                    return new SQSPlugin(plugin, config);
+            }
+        });
+
+        for (const targetPlugin of targetPlugins) {
+            await targetPlugin.initialize();
+        }
+
+        return targetPlugins;
     }
     public async getDriver(): Promise<BaseDriver> {
         const config = this.getConfig();

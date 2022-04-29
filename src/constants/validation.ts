@@ -1,8 +1,10 @@
+import * as fs from "fs";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
+import { SQSPluginConfig } from "@file/plugins/sqs.plugin";
+
 import { Config, LocalDriverConfig, S3DriverConfig, TextConfigFilter } from "@utils/types";
-import * as fs from "fs";
 
 type ZodShape<T> = {
     // Require all the keys from T
@@ -37,10 +39,21 @@ const CONFIG_S3_DRIVER: ZodShape<S3DriverConfig> = {
     region: z.string(),
 };
 
+const CONFIG_SQS_PLUGIN: ZodShape<SQSPluginConfig> = {
+    type: z.enum(["sqs"]),
+    concurrency: z.number(),
+    accessKey: z.string(),
+    keyId: z.string(),
+    region: z.string(),
+    queueUrl: z.string(),
+};
+
 const CONFIG_VALIDATOR: ZodShape<Config> = {
     driver: z.union([z.object(CONFIG_LOCAL_DRIVER), z.object(CONFIG_S3_DRIVER)]),
+    plugins: z.array(z.object(CONFIG_SQS_PLUGIN)).optional(),
     targets: z.array(z.object(CONFIG_TARGET_VALIDATOR)),
     monitorInterval: z.union([z.number(), z.string()]),
+    serverUrl: z.string(),
 };
 
 export const CONFIG_VALIDATION_SCHEMA = z.object(CONFIG_VALIDATOR);

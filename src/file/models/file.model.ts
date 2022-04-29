@@ -1,13 +1,33 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, RelationId } from "typeorm";
 import { Field, Float, Int, ObjectType } from "@nestjs/graphql";
 
+import { FileInformation } from "@chanhive/core";
+
 import { Post } from "@post/models/post.model";
 import { Board } from "@board/models/board.model";
 import { Thread } from "@thread/models/thread.model";
 
+import { getUrlFromFile } from "@utils/getUrlFromFile";
+import { Config } from "@utils/types";
+
 @Entity({ name: "files" })
 @ObjectType()
 export class File {
+    public static toInformation(file: File, config: Config): FileInformation {
+        return {
+            url: getUrlFromFile(file, config),
+            md5: file.md5,
+            size: file.size,
+            extension: file.extension,
+            height: file.height,
+            width: file.width,
+            mime: file.mime,
+            name: file.name,
+            metadata: file.metadata,
+            uploadedTimestamp: file.uploadedTimestamp,
+        };
+    }
+
     @Field(() => Int)
     @PrimaryGeneratedColumn()
     public id!: number;
@@ -19,6 +39,10 @@ export class File {
     @Field(() => String)
     @Column({ type: "text" })
     public name!: string;
+
+    @Field(() => String)
+    @Column({ type: "text" })
+    public path!: string;
 
     @Field(() => String)
     @Column({ type: "text" })
@@ -63,6 +87,9 @@ export class File {
     @Field(() => String)
     @Column({ type: "boolean", default: false })
     public metadataChecked!: boolean;
+
+    @Column({ type: "simple-array" })
+    public appliedPlugins!: string[];
 
     //
     // Relation (One-to-Many) - Post => File
