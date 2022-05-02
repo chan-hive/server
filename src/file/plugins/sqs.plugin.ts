@@ -67,20 +67,23 @@ export class SQSPlugin extends BasePlugin {
         return file;
     }
     public async register(files: File[]): Promise<void> {
+        files = files.filter(file => SQSPlugin.shouldProcessFile(file));
+        if (files.length <= 0) {
+            return;
+        }
+
         await this.sqs
             .sendMessageBatch({
-                Entries: files
-                    .filter(file => SQSPlugin.shouldProcessFile(file))
-                    .map((file, index) => ({
-                        Id: generateUUID(),
-                        MessageBody: JSON.stringify({
-                            sourceFile: File.toInformation(file, this.appConfig),
-                            callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
-                            pluginName: this.config.type,
-                        }),
-                        MessageGroupId: `chanhive-${index % this.config.concurrency}`,
-                        MessageDeduplicationId: generateUUID(),
-                    })),
+                Entries: files.map((file, index) => ({
+                    Id: generateUUID(),
+                    MessageBody: JSON.stringify({
+                        sourceFile: File.toInformation(file, this.appConfig),
+                        callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
+                        pluginName: this.config.type,
+                    }),
+                    MessageGroupId: `chanhive-${index % this.config.concurrency}`,
+                    MessageDeduplicationId: generateUUID(),
+                })),
                 QueueUrl: this.config.queueUrl,
             })
             .promise();
