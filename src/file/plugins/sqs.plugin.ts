@@ -19,6 +19,10 @@ export interface SQSPluginConfig {
 }
 
 export class SQSPlugin extends BasePlugin {
+    private static shouldProcessFile(file: File) {
+        return file.mime.startsWith("video/") && !file.mime.endsWith("mp4");
+    }
+
     private readonly sqs: AWS.SQS;
     private readonly logger = new Logger(SQSPlugin.name);
 
@@ -41,6 +45,10 @@ export class SQSPlugin extends BasePlugin {
     }
 
     public async afterPush(file: File): Promise<File> {
+        if (!SQSPlugin.shouldProcessFile(file)) {
+            return file;
+        }
+
         const message: PluginData = {
             sourceFile: File.toInformation(file, this.appConfig),
             callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
@@ -61,16 +69,18 @@ export class SQSPlugin extends BasePlugin {
     public async register(files: File[]): Promise<void> {
         await this.sqs
             .sendMessageBatch({
-                Entries: files.map((file, index) => ({
-                    Id: generateUUID(),
-                    MessageBody: JSON.stringify({
-                        sourceFile: File.toInformation(file, this.appConfig),
-                        callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
-                        pluginName: this.config.type,
-                    }),
-                    MessageGroupId: `chanhive-${index % this.config.concurrency}`,
-                    MessageDeduplicationId: generateUUID(),
-                })),
+                Entries: files
+                    .filter(file => SQSPlugin.shouldProcessFile(file))
+                    .map((file, index) => ({
+                        Id: generateUUID(),
+                        MessageBody: JSON.stringify({
+                            sourceFile: File.toInformation(file, this.appConfig),
+                            callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
+                            pluginName: this.config.type,
+                        }),
+                        MessageGroupId: `chanhive-${index % this.config.concurrency}`,
+                        MessageDeduplicationId: generateUUID(),
+                    })),
                 QueueUrl: this.config.queueUrl,
             })
             .promise();
