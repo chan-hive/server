@@ -17,6 +17,10 @@ export class MonitorService implements OnModuleInit {
     ) {}
 
     public async onModuleInit() {
+        if (process.env.NODE_ENV === "development") {
+            return;
+        }
+
         const { monitorInterval } = this.configService.getConfig();
         if (typeof monitorInterval === "string") {
             const job = new CronJob(monitorInterval, () => {
