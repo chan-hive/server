@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 import * as AWS from "aws-sdk";
 import { v4 as generateUUID } from "uuid";
 
@@ -72,20 +73,26 @@ export class SQSPlugin extends BasePlugin {
             return;
         }
 
-        await this.sqs
-            .sendMessageBatch({
-                Entries: files.map((file, index) => ({
-                    Id: generateUUID(),
-                    MessageBody: JSON.stringify({
-                        sourceFile: File.toInformation(file, this.appConfig),
-                        callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
-                        pluginName: this.config.type,
-                    }),
-                    MessageGroupId: `chanhive-${index % this.config.concurrency}`,
-                    MessageDeduplicationId: generateUUID(),
-                })),
-                QueueUrl: this.config.queueUrl,
-            })
-            .promise();
+        const fileChunks = _.chunk(files, 10);
+        let index = 0;
+        for (const chunk of fileChunks) {
+            await this.sqs
+                .sendMessageBatch({
+                    Entries: chunk.map(file => ({
+                        Id: generateUUID(),
+                        MessageBody: JSON.stringify({
+                            sourceFile: File.toInformation(file, this.appConfig),
+                            callbackUrl: `${this.appConfig.serverUrl}/plugin/callback/${file.id}`,
+                            pluginName: this.config.type,
+                        }),
+                        MessageGroupId: `chanhive-${index % this.config.concurrency}`,
+                        MessageDeduplicationId: generateUUID(),
+                    })),
+                    QueueUrl: this.config.queueUrl,
+                })
+                .promise();
+
+            ++index;
+        }
     }
 }
