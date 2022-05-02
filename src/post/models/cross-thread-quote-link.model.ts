@@ -3,7 +3,7 @@ import { Field, Int, ObjectType } from "@nestjs/graphql";
 @ObjectType()
 export class CrossThreadQuoteLinkContent {
     @Field(() => Int, { nullable: true })
-    public postId!: number | null | undefined;
+    public targetPostId!: number | null | undefined;
 
     @Field(() => Boolean)
     public isOP!: boolean;
