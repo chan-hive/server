@@ -63,6 +63,10 @@ export class FileService implements OnModuleInit {
             .value();
 
         for (const [plugin, fileIds] of pluginQueue) {
+            if (fileIds.length <= 0) {
+                continue;
+            }
+
             await plugin.register(fileIds.map(id => fileMap[id]));
         }
     }
