@@ -2,7 +2,8 @@
 import type { createPostLoader } from "@post/post.loader";
 import type { createFileLoader } from "@file/file.loader";
 import type { createBoardLoader } from "@board/board.loader";
-import { SQSPluginConfig } from "@file/plugins/sqs.plugin";
+import type { SQSPluginConfig } from "@file/plugins/sqs.plugin";
+import type { createFileCountLoader } from "@thread/thread.loader";
 
 export namespace API {
     export namespace Boards {
@@ -296,4 +297,5 @@ export interface GraphQLContext {
     postLoader: ReturnType<typeof createPostLoader>;
     fileLoader: ReturnType<typeof createFileLoader>;
     boardLoader: ReturnType<typeof createBoardLoader>;
+    fileCountLoader: ReturnType<typeof createFileCountLoader>;
 }

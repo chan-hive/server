@@ -45,8 +45,11 @@ export class ThreadResolver {
     }
 
     @ResolveField(() => Int)
-    public async fileCount(@Root() thread: Thread) {
-        return thread.fileIds.length;
+    public async fileCount(
+        @Root() thread: Thread,
+        @Context("fileCountLoader") fileCountLoader: GraphQLContext["fileCountLoader"],
+    ) {
+        return fileCountLoader.load(thread.id);
     }
 
     @ResolveField(() => Board)

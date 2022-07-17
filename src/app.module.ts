@@ -22,12 +22,16 @@ import { ConfigService } from "@config/config.service";
 import { BoardModule } from "@board/board.module";
 import { BoardService } from "@board/board.service";
 
-import { MonitorModule } from "@monitor/monitor.module";
 import { ThreadModule } from "@thread/thread.module";
+import { ThreadService } from "@thread/thread.service";
+
+import { MonitorModule } from "@monitor/monitor.module";
+
 import { GraphQLContext } from "@utils/types";
 
 import * as config from "@root/ormconfig";
 import { createBoardLoader } from "@board/board.loader";
+import { createFileCountLoader } from "@thread/thread.loader";
 
 @Module({
     imports: [
@@ -57,9 +61,14 @@ import { createBoardLoader } from "@board/board.loader";
         }),
         TypeOrmModule.forRoot(config),
         GraphQLModule.forRootAsync({
-            imports: [PostModule, FileModule, BoardModule],
-            inject: [PostService, FileService, BoardService],
-            useFactory: (postService: PostService, fileService: FileService, boardService: BoardService) => ({
+            imports: [PostModule, FileModule, BoardModule, ThreadModule],
+            inject: [PostService, FileService, BoardService, ThreadService],
+            useFactory: (
+                postService: PostService,
+                fileService: FileService,
+                boardService: BoardService,
+                threadService: ThreadService,
+            ) => ({
                 autoSchemaFile:
                     process.env.NODE_ENV !== "production"
                         ? path.join(process.cwd(), "..", "app", "schema.gql")
@@ -70,6 +79,7 @@ import { createBoardLoader } from "@board/board.loader";
                         postLoader: createPostLoader(postService),
                         fileLoader: createFileLoader(fileService),
                         boardLoader: createBoardLoader(boardService),
+                        fileCountLoader: createFileCountLoader(threadService),
                     };
                 },
                 cors: {

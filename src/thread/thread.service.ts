@@ -44,6 +44,7 @@ export class ThreadService implements InvalidationService {
             },
         });
     }
+
     public async getThreads(board?: Board | Board["id"] | null, count?: number, before?: Date | null) {
         if (typeof board === "string") {
             const boardId = board;
@@ -74,6 +75,7 @@ export class ThreadService implements InvalidationService {
 
         return getEntityByIds(this.threadRepository, ids);
     }
+
     public async getThreadCount(board?: Board | string | null | undefined) {
         if (board) {
             return this.threadRepository
@@ -181,5 +183,33 @@ export class ThreadService implements InvalidationService {
             .getRawMany<{ id: string }>();
 
         return _.chain(data).map("id").uniq().value();
+    }
+
+    public async getFileCountByIds(keys: ReadonlyArray<number>) {
+        const result = await this.threadRepository
+            .createQueryBuilder("t")
+            .select("t.id", "id")
+            .addSelect("COUNT(t.id)", "count")
+            .leftJoin(Post, "p", "t.id = p.threadId")
+            .leftJoin(File, "f", "p.fileId = f.id")
+            .where("p.fileId IS NOT NULL")
+            .groupBy("t.id")
+            .getRawMany<{ id: number; count: number }>();
+
+        const resultMap = _.chain(result)
+            .keyBy(p => p.id)
+            .mapValues(p => p)
+            .value();
+
+        console.info(resultMap);
+
+        return keys.map(key => {
+            const result = resultMap[key];
+            if (!result) {
+                throw new Error(`Failed to get file count of thread: ${key}`);
+            }
+
+            return result.count;
+        });
     }
 }
