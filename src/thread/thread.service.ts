@@ -201,8 +201,6 @@ export class ThreadService implements InvalidationService {
             .mapValues(p => p)
             .value();
 
-        console.info(resultMap);
-
         return keys.map(key => {
             const result = resultMap[key];
             if (!result) {
