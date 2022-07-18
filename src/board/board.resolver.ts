@@ -1,11 +1,12 @@
 import { Inject } from "@nestjs/common";
-import { Args, Int, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
+import { Args, Context, Int, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 
 import { BoardService } from "@board/board.service";
 import { Board } from "@board/models/board.model";
 
 import { ThreadService } from "@thread/thread.service";
 import { Thread } from "@thread/models/thread.model";
+import { GraphQLContext } from "@utils/types";
 
 @Resolver(() => Board)
 export class BoardResolver {
@@ -32,6 +33,14 @@ export class BoardResolver {
     @ResolveField(() => Int)
     public threadCount(@Root() board: Board) {
         return this.threadService.getThreadCount(board);
+    }
+
+    @ResolveField(() => Int)
+    public fileCount(
+        @Root() board: Board,
+        @Context("boardFileCountLoader") loader: GraphQLContext["boardFileCountLoader"],
+    ) {
+        return loader.load(board);
     }
 
     @ResolveField(() => Thread, { nullable: true })

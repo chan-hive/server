@@ -21,17 +21,17 @@ import { ConfigService } from "@config/config.service";
 
 import { BoardModule } from "@board/board.module";
 import { BoardService } from "@board/board.service";
+import { createBoardFileCountLoader, createBoardLoader } from "@board/board.loader";
 
 import { ThreadModule } from "@thread/thread.module";
 import { ThreadService } from "@thread/thread.service";
+import { createFileCountLoader } from "@thread/thread.loader";
 
 import { MonitorModule } from "@monitor/monitor.module";
 
 import { GraphQLContext } from "@utils/types";
 
 import * as config from "@root/ormconfig";
-import { createBoardLoader } from "@board/board.loader";
-import { createFileCountLoader } from "@thread/thread.loader";
 
 @Module({
     imports: [
@@ -80,6 +80,7 @@ import { createFileCountLoader } from "@thread/thread.loader";
                         fileLoader: createFileLoader(fileService),
                         boardLoader: createBoardLoader(boardService),
                         fileCountLoader: createFileCountLoader(threadService),
+                        boardFileCountLoader: createBoardFileCountLoader(boardService),
                     };
                 },
                 cors: {

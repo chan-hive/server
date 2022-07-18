@@ -1,3 +1,5 @@
+import { decode } from "html-entities";
+
 import { Inject } from "@nestjs/common";
 import { Args, Int, Query, ResolveField, Resolver, Root } from "@nestjs/graphql";
 
@@ -17,6 +19,11 @@ export class FileResolver {
     @Query(() => File, { nullable: true })
     public async file(@Args("id", { type: () => Int }) id: File["id"]) {
         return this.fileService.getFile(id);
+    }
+
+    @ResolveField(() => String)
+    public async name(@Root() file: File) {
+        return decode(file.name);
     }
 
     @ResolveField(() => String)

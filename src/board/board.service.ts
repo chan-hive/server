@@ -14,6 +14,9 @@ import { fetchJSON } from "@utils/fetch";
 import { API } from "@utils/types";
 import { getEntityByIds } from "@utils/getEntityByIds";
 import { ThreadService } from "@thread/thread.service";
+import { Thread } from "@thread/models/thread.model";
+import { Post } from "@root/post/models/post.model";
+import { File } from "@file/models/file.model";
 
 @Injectable()
 export class BoardService implements InvalidationService, OnModuleInit {
@@ -83,5 +86,48 @@ export class BoardService implements InvalidationService, OnModuleInit {
         }
 
         await this.boardRepository.save(newBoards);
+    }
+
+    public async getFileCountFromBoards(boards: ReadonlyArray<Board>) {
+        /*
+            SELECT
+                `b`.`id`,
+                COUNT(`b`.`id`) AS `postCount`
+            FROM
+                `boards` `b`
+                    LEFT JOIN `threads` `t` ON `b`.`id` = `t`.`boardId`
+                    LEFT JOIN `posts` `p` ON `t`.`id` = `p`.`threadId`
+                    LEFT JOIN `files` `f` ON `p`.`fileId` = `f`.`id`
+            WHERE
+                `t`.`id` IS NOT NULL AND
+                `f`.`id` IS NOT NULL
+            GROUP BY
+                `b`.`id`;
+         */
+
+        const data = await this.boardRepository
+            .createQueryBuilder("b")
+            .select("`b`.`id`", "id")
+            .addSelect("COUNT(`b`.`id`)", "postCount")
+            .leftJoin(Thread, "t", "`b`.`id` = `t`.`boardId`")
+            .leftJoin(Post, "p", "`t`.`id` = `p`.`threadId`")
+            .leftJoin(File, "f", "`p`.`fileId` = `f`.`id`")
+            .where("`t`.`id` IS NOT NULL")
+            .andWhere("`f`.`id` IS NOT NULL")
+            .groupBy("`b`.`id`")
+            .getRawMany<{ id: string; postCount: string }>();
+
+        const dataMap = _.chain(data)
+            .keyBy(t => t.id)
+            .mapValues(t => t.postCount)
+            .value();
+
+        return boards.map(board => {
+            if (!dataMap[board.id]) {
+                return 0;
+            }
+
+            return parseInt(dataMap[board.id], 10);
+        });
     }
 }
